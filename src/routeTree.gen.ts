@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartIndexRouteImport } from './routes/cart/index'
+import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as PaymentIndexRouteImport } from './routes/payment/index'
+import { Route as RegisterIndexRouteImport } from './routes/register/index'
 import { Route as ProductProductIdIndexRouteImport } from './routes/product/$productId/index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -24,9 +26,19 @@ const CartIndexRoute = CartIndexRouteImport.update({
   path: '/cart/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginIndexRoute = LoginIndexRouteImport.update({
+  id: '/login/',
+  path: '/login/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PaymentIndexRoute = PaymentIndexRouteImport.update({
   id: '/payment/',
   path: '/payment/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterIndexRoute = RegisterIndexRouteImport.update({
+  id: '/register/',
+  path: '/register/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductProductIdIndexRoute = ProductProductIdIndexRouteImport.update({
@@ -38,34 +50,56 @@ const ProductProductIdIndexRoute = ProductProductIdIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cart/': typeof CartIndexRoute
+  '/login/': typeof LoginIndexRoute
   '/payment/': typeof PaymentIndexRoute
+  '/register/': typeof RegisterIndexRoute
   '/product/$productId/': typeof ProductProductIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cart': typeof CartIndexRoute
+  '/login': typeof LoginIndexRoute
   '/payment': typeof PaymentIndexRoute
+  '/register': typeof RegisterIndexRoute
   '/product/$productId': typeof ProductProductIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cart/': typeof CartIndexRoute
+  '/login/': typeof LoginIndexRoute
   '/payment/': typeof PaymentIndexRoute
+  '/register/': typeof RegisterIndexRoute
   '/product/$productId/': typeof ProductProductIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cart/' | '/payment/' | '/product/$productId/'
+  fullPaths:
+    | '/'
+    | '/cart/'
+    | '/login/'
+    | '/payment/'
+    | '/register/'
+    | '/product/$productId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cart' | '/payment' | '/product/$productId'
-  id: '__root__' | '/' | '/cart/' | '/payment/' | '/product/$productId/'
+  to:
+    '/' | '/cart' | '/login' | '/payment' | '/register' | '/product/$productId'
+  id:
+    | '__root__'
+    | '/'
+    | '/cart/'
+    | '/login/'
+    | '/payment/'
+    | '/register/'
+    | '/product/$productId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CartIndexRoute: typeof CartIndexRoute
+  LoginIndexRoute: typeof LoginIndexRoute
   PaymentIndexRoute: typeof PaymentIndexRoute
+  RegisterIndexRoute: typeof RegisterIndexRoute
   ProductProductIdIndexRoute: typeof ProductProductIdIndexRoute
 }
 
@@ -85,11 +119,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CartIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login/': {
+      id: '/login/'
+      path: '/login'
+      fullPath: '/login/'
+      preLoaderRoute: typeof LoginIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/payment/': {
       id: '/payment/'
       path: '/payment'
       fullPath: '/payment/'
       preLoaderRoute: typeof PaymentIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register/': {
+      id: '/register/'
+      path: '/register'
+      fullPath: '/register/'
+      preLoaderRoute: typeof RegisterIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/product/$productId/': {
@@ -105,7 +153,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CartIndexRoute: CartIndexRoute,
+  LoginIndexRoute: LoginIndexRoute,
   PaymentIndexRoute: PaymentIndexRoute,
+  RegisterIndexRoute: RegisterIndexRoute,
   ProductProductIdIndexRoute: ProductProductIdIndexRoute,
 }
 export const routeTree = rootRouteImport
