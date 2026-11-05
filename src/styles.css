@@ -1,11 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/roboto";
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: "Geist Variable", sans-serif;
+  --font-sans: "Roboto Variable", sans-serif;
 
   --color-primary: var(--primary);
   --color-primary-light: var(--primary-light);
@@ -87,6 +87,10 @@
 }
 
 @layer base {
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
   body {
     @apply bg-ink text-foreground;
   }
