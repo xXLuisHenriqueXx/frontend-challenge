@@ -4,6 +4,10 @@ import { db, hash, publicUser, reset, save } from "./database";
 import { decimal, parseSearch, units } from "../api/contracts";
 import type { CartLine, OrderInput, Quote, Wallet } from "../api/contracts";
 
+// Controls affect the mock server only; UI still uses its normal REST/socket clients.
+let latency: number | undefined;
+let settlementPaused = false;
+
 class Fault extends Error {
   constructor(
     public status: number,
@@ -73,6 +77,7 @@ function quote(id: string, coupon: string): Quote {
   };
 }
 export function completeOrders() {
+  if (settlementPaused || db.scenario === "pending-orders") return;
   for (const order of Object.values(db.orders)) {
     if (
       !order ||
@@ -140,8 +145,17 @@ export const handlers = [
     }
     try {
       if (path === "/mock/reset") {
+        latency = undefined;
+        settlementPaused = false;
         await reset(String(body.scenario ?? "success"));
         return HttpResponse.json({ ok: true });
+      }
+      if (path === "/mock/timing") {
+        if (typeof body.latency === "number")
+          latency = Math.max(0, body.latency);
+        if (typeof body.settlementPaused === "boolean")
+          settlementPaused = body.settlementPaused;
+        return HttpResponse.json({ latency, settlementPaused });
       }
       if (path === "/mock/scenario") {
         db.scenario = String(body.scenario ?? "success");
@@ -177,13 +191,14 @@ export const handlers = [
         return HttpResponse.json(nft);
       }
       await delay(
-        db.scenario === "slow"
-          ? 1800
-          : db.scenario === "out-of-order"
-            ? (url.searchParams.get("q")?.length ?? 0) % 2
-              ? 1500
-              : 100
-            : 120,
+        latency ??
+          (db.scenario === "slow"
+            ? 1800
+            : db.scenario === "out-of-order"
+              ? (url.searchParams.get("q")?.length ?? 0) % 2
+                ? 1500
+                : 100
+              : 120),
       );
       if (db.scenario === "offline") return HttpResponse.error();
       if (db.scenario === "http-500")

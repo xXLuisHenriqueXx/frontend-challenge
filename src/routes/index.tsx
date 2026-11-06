@@ -31,7 +31,7 @@ function Home() {
           <Sidebar />
 
           <div className="flex flex-col gap-12 min-w-0 lg:gap-6">
-            <div className="-my-8 flex items-center justify-between gap-4 lg:my-0">
+            <div className="-my-8 flex flex-wrap items-center justify-between gap-4 lg:my-0">
               <Categories />
               <SortSelect />
             </div>

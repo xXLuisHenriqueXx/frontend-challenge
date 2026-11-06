@@ -60,13 +60,16 @@ await fetch("/api/mock/nft", {
 
 Todos os cenários REST anteriores continuam disponíveis em API.md. Adições:
 
-| Cenário            | Resultado                                                           |
-| ------------------ | ------------------------------------------------------------------- |
-| `wallet-refused`   | POST `/wallet-connection` retorna erro de recusa                    |
-| `duplicate-events` | Cada evento é enviado duas vezes com mesmo ID e versão              |
-| `old-events`       | Após o evento atual, envia outro com versão anterior                |
-| `socket-offline`   | Fecha conexões a cada 250 ms; retornar a success permite reconectar |
-| `payment-refused`  | Novos pedidos terminam recusados, preservando carrinho              |
+| Cenário            | Resultado                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| `wallet-refused`   | POST `/wallet-connection` retorna erro de recusa                                          |
+| `duplicate-events` | Cada evento é enviado duas vezes com mesmo ID e versão                                    |
+| `old-events`       | Após o evento atual, envia versão anterior com preço/estoque obsoletos ou pedido pendente |
+| `socket-offline`   | Fecha conexões a cada 250 ms; retornar a success permite reconectar                       |
+| `payment-refused`  | Novos pedidos terminam recusados, preservando carrinho                                    |
+| `pending-orders`   | Mantém pedidos pendentes, inclusive após refresh, até mudar o cenário                     |
+
+`POST /api/mock/timing` permite configurar `latency` (milissegundos) e `settlementPaused` (booleano) nos testes. Os controles são aplicados somente no servidor simulado e limpos por `/api/mock/reset`; são voláteis e não sobrevivem ao refresh. O cenário `pending-orders` usa a persistência normal para controlar a retomada de pedidos. Nenhum desses controles atualiza a interface diretamente.
 
 Para o cenário completo de preço: adicionar NFT 1 ao carrinho, entrar no checkout, conectar carteira e revisar. Alterar preço usando `/mock/nft`. O evento deve avisar a mudança e recotar o resumo; o checkout exige revisar novamente. A API também rejeita o quoteId antigo com 409 mesmo se o evento não chegar. Para interrupção de pedido: criar tentativa, ativar socket-offline enquanto pendente e voltar a success; recuperar o mesmo orderId pela API após reconexão/refresh. Com order-timeout, usar Recuperar tentativa, mantendo chave e corpo persistidos por usuário.
 
@@ -74,4 +77,4 @@ Para o cenário completo de preço: adicionar NFT 1 ao carrinho, entrar no check
 
 `test:integration` usa Axios e os mesmos handlers HTTP, incluindo perfil/avatar/senha/carteiras, conexão, falhas e idempotência. `test:realtime` usa socket.io-client com transporte WebSocket do navegador no Node e o binding real do MSW: handshake, eventos, duplicatas/antigos pela rede, cotação obsoleta, terminalidade, snapshot, desconexão/reconexão e troca de usuário.
 
-Esses testes não são Playwright nem comprovam interação, foco ou layout renderizado. A tentativa de validação manual nesta sessão retornou “No browser is available”, com lista de navegadores vazia. Conexão de navegador foi solicitada ao usuário. A validação visual de 390/768/1440 e a medição de CLS continuam pendentes; os skeletons preservam containers e dimensões previstos no código e desativam shimmer em reduced motion, mas isso não equivale a uma medição de layout shift.
+Esses testes de contratos são complementados por `test:e2e`: Playwright usa os mesmos mocks no navegador, exercita a interface em 390/1440 e acessibilidade também em 768. As referências PNG cobrem início, detalhe, carrinho e pagamento em desktop/mobile. Execução, controles e limites estão em [TESTES.md](TESTES.md). A inspeção humana com teclado/zoom nativo e a medição de CLS continuam pendentes; automação e capturas não equivalem a essas avaliações.

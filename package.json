@@ -16,7 +16,10 @@
     "typecheck": "tsc --noEmit",
     "test:integration": "node scripts/test-integration.mjs",
     "test:realtime": "node scripts/test-realtime.mjs",
-    "test:a11y": "node scripts/run-a11y.mjs"
+    "test:a11y": "node scripts/run-a11y.mjs",
+    "test:e2e": "node scripts/run-e2e.mjs",
+    "test:e2e:update": "node scripts/run-e2e.mjs --update-snapshots=all",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

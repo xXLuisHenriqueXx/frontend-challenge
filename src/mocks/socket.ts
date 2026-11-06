@@ -49,6 +49,10 @@ export const socketHandlers = [
           ...event,
           eventId: event.eventId + "-old",
           version: Math.max(0, event.version - 1),
+          data:
+            name === "nft.updated"
+              ? { ...event.data, price: "0.01", stock: 999 }
+              : { ...event.data, status: "pending" },
           sessionToken: token,
         });
     });

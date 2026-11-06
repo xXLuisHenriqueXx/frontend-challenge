@@ -135,7 +135,10 @@ export function useCheckout(id: string, walletId: string, network: string) {
     draft,
     persist,
     recovering,
-    reviewed: !!quote.data && reviewed === quoteFingerprint(quote.data),
+    reviewed:
+      !quote.isError &&
+      !!quote.data &&
+      reviewed === quoteFingerprint(quote.data),
     resetConnection: () => {
       setConnection("");
       setReviewed("");

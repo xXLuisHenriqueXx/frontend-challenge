@@ -574,7 +574,7 @@ function RouteComponent() {
               disabled={
                 mutation.isPending ||
                 (!checkout.recovering &&
-                  (!walletId || !quote.data?.items.length))
+                  (!walletId || quote.isError || !quote.data?.items.length))
               }
               form="collector-form"
               type={checkout.recovering ? "button" : "submit"}

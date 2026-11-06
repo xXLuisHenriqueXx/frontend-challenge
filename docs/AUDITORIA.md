@@ -1,5 +1,35 @@
 # Auditoria do NFT Marketplace
 
+## Atualização — etapa 5: Playwright E2E e regressão visual (06/11/2026)
+
+Esta seção é o diagnóstico vigente dos testes. As etapas abaixo são mantidas como histórico. A geração das referências com `npm run test:e2e:update` terminou com **48 testes aprovados**, sem retries automáticos: 28 funcionais, dois percursos visuais com quatro capturas cada e 18 de acessibilidade. As oito referências PNG de início, detalhe, carrinho e pagamento estão em `tests/e2e/visual.spec.ts-snapshots` para desktop 1440 e mobile 390. A matriz de acessibilidade também cobre 768.
+
+A verificação final com `npm run test:e2e`, sem atualizar referências, também terminou com **48 testes aprovados em 5,7 minutos**, exit 0 e as oito comparações visuais sem pixels diferentes. Essa execução inclui recuperação do timeout após refresh, evento antigo de pedido pendente após confirmação e skeleton do resumo do carrinho. Build, preview próprio e encerramento estão incluídos no comando.
+
+| Cobertura                 | Evidência                                                                                                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catálogo                  | Busca, filtros combinados, ordenação observada nos produtos, paginação, reset de página, histórico, vazio e respostas fora de ordem                                               |
+| Detalhe                   | Acesso direto, título e NFT inexistente                                                                                                                                           |
+| Autenticação e isolamento | Cadastro com validação, login, sessão após refresh, logout, troca de conta, expiração e recuperação dos dados da conta original                                                   |
+| Favoritos                 | Falha real de mutation, rollback visual e REST, nova tentativa bem-sucedida e isolamento por usuário                                                                              |
+| Carrinho                  | Quantidade, remoção, cupom inválido/aplicar/remover, valores decimais exatos, refresh e merge do visitante no login                                                               |
+| Compra                    | Catálogo até recibo confirmado, requisição de criação única em clique repetido, estoque decrementado uma vez e carrinho esvaziado                                                 |
+| Falhas e recuperação      | Recusa preserva itens/estoque; timeout reenvia mesma chave e corpo; pedido pendente recuperado após interrupção e refresh                                                         |
+| Snapshot e terminalidade  | Recibo preserva valores após alteração do catálogo e refresh; evento antigo de pedido pendente não regride confirmação                                                            |
+| Conta                     | Perfil e avatar válidos persistem; arquivo inválido rejeitado; senha atual incorreta rejeitada, senha nova usada no login; carteiras principal/secundária com validação e refresh |
+| Socket.IO real            | Preço e estoque alterados pelo mock chegam ao checkout, invalidam revisão e bloqueiam compra esgotada; cenários de duplicatas/antigos e desconexão/reconciliação                  |
+| Acessibilidade e estados  | Teclado, trap e retorno de foco, Escape, validação associada, títulos, reflow, axe, skeletons e reduced motion; erro de servidor com retry                                        |
+
+Os fluxos passam pelo Axios, handlers MSW e cliente Socket.IO da aplicação. Os controles `/mock/nft`, `/mock/scenario` e `/mock/timing` alteram somente a camada de mocks. O aviso de confirmação por socket é verificado além do recibo; polling REST continua disponível como recuperação. Não há setters de UI/cache nos testes, respostas de negócio substituídas pelo Playwright, sleeps fixos ou supressão de regras axe. Cada teste usa contexto novo e reset conhecido.
+
+Correções encontradas na execução: ordenação e paginação estavam indisponíveis em mobile e agora são operáveis; o checkout conservava a confirmação sobre uma cotação com erro de estoque e agora invalida a revisão e bloqueia o envio. O cenário de evento antigo inclui dados obsoletos diferentes, para tornar uma regressão observável. Foi acrescentado controle de processamento pendente na camada de mocks para testar interrupção sem corrida contra o timer de liquidação.
+
+Verificações complementares aprovadas: **60 verificações REST**, **17 de Socket.IO**, typecheck e lint. Durante a execução paralela, Socket.IO e lint atingiram o limite de memória do ambiente; suas reexecuções isoladas foram aprovadas. Permanece o aviso de chunk acima de 500 kB no build.
+
+Configuração e reprodução: [TESTES.md](TESTES.md), `playwright.config.ts` e `scripts/run-e2e.mjs`. Chromium 158.0.8127.18, Playwright 1.65.0, Node 24.14.0, Windows/PowerShell; build Vite otimizado com mocks ativos. Relógio fixo nas capturas, animações desativadas, fontes/imagens carregadas e latência determinística. As referências são específicas de Chromium/Windows. Relatório HTML em `playwright-report/index.html`, aberto por `npm run test:e2e:report`; trace com `retain-on-failure` e screenshot das falhas em `test-results`. O executor encerra o preview próprio ao terminar.
+
+Limites: as capturas estabelecem referências do código existente, sem comprovar fidelidade ao Figma indisponível. Inspeção humana de teclado/zoom nativo, leitor de tela, Lighthouse/CLS e deploy público continuam fora da validação desta etapa; os testes não equivalem a essas avaliações.
+
 ## Atualização — etapa 4: acessibilidade (06/11/2026)
 
 Este é o diagnóstico vigente da acessibilidade. As seções de etapas anteriores, mantidas abaixo para histórico, não descrevem o estado atual desse checklist.

@@ -1,10 +1,9 @@
 import { Route } from "../index";
-// Só aparece no desktop (lg+).
 function SortSelect() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   return (
-    <label className="hidden shrink-0 items-center gap-2 text-xs text-secondary lg:flex">
+    <label className="flex shrink-0 items-center gap-2 text-xs text-secondary">
       Ordenar por:
       <select
         className="cursor-pointer rounded-sm bg-transparent py-1 text-font-primary outline-none focus-visible:ring-1 focus-visible:ring-primary"

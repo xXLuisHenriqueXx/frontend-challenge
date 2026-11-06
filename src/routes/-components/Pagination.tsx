@@ -16,7 +16,7 @@ function Pagination() {
 
   return (
     <nav
-      className="hidden items-center justify-end gap-2 lg:flex"
+      className="flex flex-wrap items-center justify-end gap-2"
       aria-label="Paginação"
     >
       {PAGES.map((item) => (
