@@ -1,33 +1,99 @@
-import { Card } from "@/components/ui/card";
+import { Delete } from "react-iconly";
 
 import Monkey from "@/assets/monkey.png";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
-function ProductCard() {
+export type CartItem = {
+  id: number;
+  name: string;
+  tokenId: string;
+  edition: string;
+  price: number;
+  quantity: number;
+};
+
+type ProductCardProps = {
+  item: CartItem;
+  onIncrease: () => void;
+  onDecrease: () => void;
+  onRemove: () => void;
+};
+
+function ProductCard({
+  item,
+  onIncrease,
+  onDecrease,
+  onRemove,
+}: ProductCardProps) {
+  const { name, tokenId, edition, price, quantity } = item;
+
   return (
-    <Card className="flex flex-row items-center justify-between w-full min-h-25 pr-4 bg-surface-card rounded-xl">
-      <div className="flex flex-row items-center gap-2">
-        <img className="h-25 aspect-square" src={Monkey} alt="Monkey" />
+    <Card className="grid grid-cols-[1fr_auto] items-center gap-2 w-full min-h-25 pr-4 bg-surface-card rounded-xl lg:grid-cols-[minmax(0,1fr)_7rem_9rem_7rem_2.5rem] lg:gap-4 lg:min-h-17.5 lg:rounded-md">
+      <div className="flex flex-row items-center gap-2 min-w-0 lg:gap-4">
+        <img
+          className="h-25 aspect-square object-cover lg:h-17.5"
+          src={Monkey}
+          alt={name}
+        />
 
-        <div className="space-y-4">
+        <div className="space-y-4 min-w-0 lg:space-y-0">
           <div>
-            <h2 className="text-[15px] font-bold">Emeral Ape #042</h2>
-            <p className="text-sm text-secondary">Edição: 1/50</p>
+            <h2 className="text-[15px] font-bold truncate">{name}</h2>
+            <p className="text-sm text-secondary lg:hidden">
+              Edição: {edition}
+            </p>
+            <p className="hidden lg:block text-sm text-secondary">
+              ID do token: {tokenId}
+            </p>
           </div>
 
-          <p className="text-lg font-bold text-font-accent">1.19 ETH</p>
+          <p className="text-lg font-bold text-font-accent lg:hidden">
+            {price.toFixed(2)} ETH
+          </p>
         </div>
       </div>
 
+      <span className="hidden lg:block font-bold text-font-accent">
+        {price.toFixed(2)} ETH
+      </span>
+
       <div className="flex flex-row items-center gap-3">
-        <Button className="size-6 rounded-full" variant="outline" size="icon">
+        <Button
+          className="size-6 rounded-full"
+          variant="outline"
+          size="icon"
+          aria-label="Diminuir quantidade"
+          disabled={quantity <= 1}
+          onClick={onDecrease}
+        >
           -
         </Button>
-        <span className="text-lg font-medium tabular-nums">1</span>
-        <Button className="size-6 rounded-full" variant="outline" size="icon">
+        <span className="text-lg font-medium tabular-nums">{quantity}</span>
+        <Button
+          className="size-6 rounded-full"
+          variant="outline"
+          size="icon"
+          aria-label="Aumentar quantidade"
+          onClick={onIncrease}
+        >
           +
         </Button>
       </div>
+
+      <span className="hidden lg:block font-bold text-font-accent tabular-nums">
+        {(price * quantity).toFixed(2)} ETH
+      </span>
+
+      <Button
+        className="hidden lg:inline-flex"
+        variant="ghost"
+        size="icon"
+        aria-label={`Remover ${name}`}
+        onClick={onRemove}
+      >
+        <Delete size={20} />
+      </Button>
     </Card>
   );
 }
