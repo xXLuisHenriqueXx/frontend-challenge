@@ -82,7 +82,7 @@ function ProductCard({
       </span>
 
       <Button
-        className="hidden lg:inline-flex"
+        className="inline-flex"
         variant="ghost"
         size="icon"
         aria-label={`Remover ${name}`}

@@ -1,4 +1,10 @@
-# Contratos REST — etapa 2
+# Contratos REST — etapas 2 e 3
+
+Adições da etapa 3: sessão inclui `token`; perfil aceita também `username`, `email`, `ens` e `walletNickname`; PATCH de perfil valida antes de persistir. Carteiras aceitam `role` (primary/secondary), `nickname`, `profileName` e `ens`, com limite de duas e ordem estável. POST `/cart/items` aceita `mode: 'add'` para somar quantidade, mantendo substituição absoluta como padrão para edição.
+
+POST `/wallet-connection` recebe `{walletId,network}` e devolve `{connectionId}`; DELETE encerra as conexões da sessão. Recusa de conexão e rede incompatível retornam 422. No fluxo da interface, POST `/orders` inclui também `connectionId` e `collector {displayName,username,profileName,email,network,walletAddress,walletType,referralCode,...}`. Dados e conexão são validados, incluindo token da sessão e rede. O contrato básico anterior de pedidos permanece compatível para testes de baixo nível; a interface exige a conexão e a revisão dos dados. Todos os campos presentes fazem parte do corpo canônico da tentativa, e o mesmo corpo/chave recupera o pedido existente.
+
+POST `/mock/nft` recebe `{id,price?,stock?}`, persiste alteração, incrementa a versão e publica nft.updated por Socket.IO. Cenários adicionais: wallet-refused, duplicate-events, old-events e socket-offline. Eventos, transporte e instruções completas em [MOCKS.md](MOCKS.md).
 
 Base `/api` (configurável por `VITE_API_URL`). Transporte único: Axios; simulação única: handlers MSW em `src/mocks/handlers.ts`. Tipos compartilhados em `src/api/contracts.ts`. Valores ETH são strings decimais com até 18 casas; cálculos usam inteiros BigInt em unidades de 10⁻¹⁸ ETH. Quantidades são inteiros positivos. Nenhum saldo ou transação corresponde a blockchain real.
 

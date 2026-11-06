@@ -1,3 +1,4 @@
+import { DetailSkeleton } from "@/components/Skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { nftOptions, message, catalogOptions } from "@/api/client";
 import { multiply, parseSearch } from "@/api/contracts";
@@ -27,7 +28,8 @@ function RouteComponent() {
   const [tab, setTab] = useState<"details" | "reviews">("details");
 
   const PRODUCT = query.data;
-  if (!PRODUCT) return <RemoteState query={query} />;
+  if (query.isPending) return <DetailSkeleton />;
+ if (!PRODUCT) return <RemoteState query={query} />;
   const RELATED = (related.data?.items ?? [])
     .filter((n) => n.id !== PRODUCT.id)
     .slice(0, 5)

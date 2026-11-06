@@ -32,8 +32,8 @@ const statusConfig = {
     subtotalLabel: "Subtotal",
     totalLabel: "Total",
     footnote:
-      "Transação confirmada na Ethereum. A propriedade foi transferida para sua carteira conectada e registrada na rede.",
-    cta: "Ver no Etherscan",
+      "Compra confirmada na simulação. Este recibo não representa uma transferência real na blockchain.",
+    cta: "Transação simulada",
   },
   pending: {
     title: "Aguardando confirmação da rede",
@@ -43,7 +43,7 @@ const statusConfig = {
     totalLabel: "Total estimado",
     footnote:
       "Sua transação foi enviada e está aguardando confirmação na Ethereum. Isso pode levar alguns minutos. Você pode fechar esta página, os NFTs aparecerão na sua carteira assim que a rede confirmar.",
-    cta: "Acompanhar no Etherscan",
+    cta: "Transação simulada",
   },
   failed: {
     title: "Pagamento recusado",
@@ -236,6 +236,14 @@ function RouteComponent() {
           </ul>
 
           <div className="ml-auto mt-2 w-full space-y-1 text-sm sm:w-[70%]">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>{order.quote.subtotal} ETH</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Desconto</span>
+              <span>− {order.quote.discount} ETH</span>
+            </div>
             <div className="flex justify-between">
               <span>
                 {isPending ? "Taxa de rede (estimada)" : "Taxa de rede"}

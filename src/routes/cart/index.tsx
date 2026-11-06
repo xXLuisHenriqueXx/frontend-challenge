@@ -1,3 +1,4 @@
+import { SummarySkeleton } from "@/components/Skeleton";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate, createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -134,7 +135,11 @@ function RouteComponent() {
           </div>
         </section>
 
-        <aside className="fixed bottom-0 left-0 right-0 flex flex-col gap-8 p-6 pb-9 bg-surface-card rounded-t-[40px] lg:sticky lg:top-10 lg:gap-6 lg:p-0 lg:bg-transparent lg:rounded-none">
+        <aside
+          aria-busy={quote.isPending}
+          className="fixed bottom-0 left-0 right-0 flex flex-col gap-8 p-6 pb-9 bg-surface-card rounded-t-[40px] lg:sticky lg:top-10 lg:gap-6 lg:p-0 lg:bg-transparent lg:rounded-none"
+        >
+          {quote.isPending && <SummarySkeleton />}
           <h2 className="hidden lg:block pb-3 border-b border-border text-lg font-bold">
             Resumo da carteira
           </h2>
@@ -200,7 +205,13 @@ function RouteComponent() {
           <div className="flex flex-col gap-3">
             <Button
               className="w-full rounded-full lg:rounded-md"
-              disabled={items.length === 0 || cart.mutation.isPending}
+              disabled={
+                items.length === 0 ||
+                cart.mutation.isPending ||
+                quote.isError ||
+                quote.isFetching ||
+                items.some((i) => i.quantity > i.stock)
+              }
               onClick={() => void navigate({ to: "/payment" })}
             >
               Conectar e finalizar

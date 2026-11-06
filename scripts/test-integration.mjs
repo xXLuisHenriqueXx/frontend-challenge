@@ -17,7 +17,7 @@ const vite = await createServer({
   configFile: false,
   resolve: { tsconfigPaths: true },
   optimizeDeps: { noDiscovery: true, include: [] },
-  server: { middlewareMode: true },
+  server: { middlewareMode: true, hmr: false, ws: false },
   appType: "custom",
 });
 const { initialize, reset } = await vite.ssrLoadModule(
@@ -310,6 +310,174 @@ try {
   check(
     (await api.get("/nfts")).data.total === 36,
     "database reload persistence",
+  );
+  const loginSession = (await login("ana")).data;
+  check(
+    (await api.get("/auth/session")).data.token === loginSession.token,
+    "session token survives refresh",
+  );
+  const avatar = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB";
+  await api.patch("/profile", {
+    displayName: "Ana Nova",
+    username: "ananova",
+    email: "ana.nova@kurio.test",
+    avatar,
+  });
+  await initialize();
+  check(
+    (await api.get("/profile")).data.avatar === avatar,
+    "profile and avatar survive reload",
+  );
+  check(
+    (
+      await api.patch("/profile", {
+        displayName: "Must not save",
+        email: "invalid",
+      })
+    ).status === 422 &&
+      (await api.get("/profile")).data.displayName === "Ana Nova",
+    "invalid profile patch is atomic",
+  );
+  check(
+    (
+      await post("/profile/password", {
+        currentPassword: "Kurio123!",
+        password: "NovaSenha123!",
+      })
+    ).status === 200,
+    "change password",
+  );
+  await post("/auth/logout");
+  check(
+    (
+      await post("/auth/login", {
+        email: "ana.nova@kurio.test",
+        password: "Kurio123!",
+      })
+    ).status === 401,
+    "old password rejected",
+  );
+  check(
+    (
+      await post("/auth/login", {
+        email: "ana.nova@kurio.test",
+        password: "NovaSenha123!",
+      })
+    ).status === 200,
+    "new password accepted",
+  );
+  const principal = (await api.get("/wallets")).data[0];
+  await post("/wallets", {
+    name: "Reserva",
+    address: "0x" + "c".repeat(40),
+    network: "Polygon",
+    role: "secondary",
+  });
+  await api.patch("/wallets/" + principal.id, {
+    ...principal,
+    name: "Minha principal",
+    role: "primary",
+  });
+  check(
+    (await api.get("/wallets")).data[0].name === "Minha principal",
+    "editing primary wallet preserves role order",
+  );
+  check(
+    (
+      await post("/wallets", {
+        name: "Extra",
+        address: "0x" + "d".repeat(40),
+        network: "Ethereum",
+      })
+    ).status === 409,
+    "two wallet limit",
+  );
+  check(
+    (
+      await post("/wallet-connection", {
+        walletId: principal.id,
+        network: "Polygon",
+      })
+    ).status === 422,
+    "network mismatch rejected",
+  );
+  await scenario("wallet-refused");
+  check(
+    (
+      await post("/wallet-connection", {
+        walletId: principal.id,
+        network: "Ethereum",
+      })
+    ).status === 422,
+    "wallet refuses connection",
+  );
+  await scenario("success");
+  const connectionId = (
+    await post("/wallet-connection", {
+      walletId: principal.id,
+      network: "Ethereum",
+    })
+  ).data.connectionId;
+  check(!!connectionId, "wallet connects through MSW");
+  await post("/cart/items", { nftId: "1", edition: "1/50", quantity: 1 });
+  const reviewedQuote = (await post("/quote")).data;
+  const collector = {
+    displayName: "Ana",
+    username: "ananova",
+    profileName: "Ana",
+    email: "ana.nova@kurio.test",
+    network: "Ethereum",
+    walletAddress: principal.address,
+    walletType: "metamask",
+    referralCode: "KURIO",
+    ensName: "ana",
+  };
+  const checkoutBody = {
+    quoteId: reviewedQuote.id,
+    walletId: principal.id,
+    connectionId,
+    collector,
+  };
+  await api.delete("/wallet-connection");
+  check(
+    (
+      await post("/orders", checkoutBody, {
+        headers: { "Idempotency-Key": "disconnected" },
+      })
+    ).status === 422,
+    "disconnected wallet cannot buy",
+  );
+  checkoutBody.connectionId = (
+    await post("/wallet-connection", {
+      walletId: principal.id,
+      network: "Ethereum",
+    })
+  ).data.connectionId;
+  check(
+    (
+      await post(
+        "/orders",
+        { ...checkoutBody, collector: { ...collector, email: "invalid" } },
+        { headers: { "Idempotency-Key": "bad-fields" } },
+      )
+    ).status === 422,
+    "collector API validation",
+  );
+  const checkoutOrder = (
+    await post("/orders", checkoutBody, {
+      headers: { "Idempotency-Key": "reviewed-order" },
+    })
+  ).data;
+  check(
+    checkoutOrder.status === "pending",
+    "reviewed connected checkout creates pending order",
+  );
+  await post("/cart/items", { nftId: "1", edition: "1/50", quantity: 3 });
+  await new Promise((resolve) => setTimeout(resolve, 1600));
+  await api.get("/orders/" + checkoutOrder.id);
+  check(
+    (await api.get("/cart")).data.items[0].quantity === 2,
+    "confirmation preserves quantities added after purchase",
   );
   console.log(`${checks} integration checks passed through Axios and MSW`);
 } finally {

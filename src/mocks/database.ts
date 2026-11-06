@@ -25,6 +25,12 @@ interface Database {
   attempts: Partial<Record<string, { body: string; orderId: string }>>;
   session: Session | null;
   scenario: string;
+  connections: Partial<
+    Record<
+      string,
+      { userId: string; walletId: string; network: string; token?: string }
+    >
+  >;
 }
 const storageKey = "kurio.mock.v1";
 export async function hash(password: string, salt: string) {
@@ -41,6 +47,11 @@ export function save() {
   localStorage.setItem(storageKey, JSON.stringify(db));
 }
 export async function reset(scenario = "success") {
+  if (typeof sessionStorage !== "undefined") {
+    for (const key of Object.keys(sessionStorage))
+      if (key.startsWith("kurio.attempt.") || key.startsWith("kurio.checkout."))
+        sessionStorage.removeItem(key);
+  }
   const users = await Promise.all(
     ["ana", "bruno"].map(async (name, i) => ({
       id: `user-${i + 1}`,
@@ -120,6 +131,7 @@ export async function reset(scenario = "success") {
         ],
       ]),
     ),
+    connections: {},
     quotes: {},
     orders: {},
     attempts: {},
@@ -132,12 +144,13 @@ export async function initialize() {
   const raw = localStorage.getItem(storageKey);
   if (raw) {
     try {
-      db = JSON.parse(raw) as Database;
+      db = { connections: {}, ...JSON.parse(raw) } as Database;
     } catch {
       await reset();
     }
   } else await reset();
   if (new URLSearchParams(location.search).get("reset") === "1") await reset();
+
   const scenario = new URLSearchParams(location.search).get("scenario");
   if (scenario) {
     db.scenario = scenario;

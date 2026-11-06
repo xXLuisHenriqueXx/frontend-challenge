@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { cn } from "cn";
 import { Buy, Heart, Home, Scan, User } from "react-iconly";
@@ -13,6 +14,7 @@ const BUTTONS_NAV = [
 ] as const;
 
 export function BottomBar() {
+  const navigate = useNavigate();
   const [active, setActive] = useState("home");
 
   return (
@@ -53,7 +55,11 @@ export function BottomBar() {
                 size="icon"
                 aria-label={item.label}
                 aria-current={isActive ? "page" : undefined}
-                onClick={() => setActive(item.id)}
+                onClick={() => {
+                  setActive(item.id);
+                  if (item.id === "profile") void navigate({ to: "/profile" });
+                  if (item.id === "cart") void navigate({ to: "/cart" });
+                }}
               >
                 <Icon filled />
               </Button>

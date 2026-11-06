@@ -1,3 +1,4 @@
+import { publish } from "./events";
 import { http, HttpResponse, delay } from "msw";
 import { db, hash, publicUser, reset, save } from "./database";
 import { decimal, parseSearch, units } from "../api/contracts";
@@ -20,6 +21,8 @@ function fail(
   throw new Fault(status, message, fields);
 }
 function sessionUser(request: Request) {
+  const token = request.headers.get("X-Session-Token");
+  if (token && token !== db.session?.token) fail(401, "Sessão substituída");
   if (
     request.headers.get("X-Session-User") &&
     request.headers.get("X-Session-User") !== db.session?.user.id
@@ -69,7 +72,7 @@ function quote(id: string, coupon: string): Quote {
     expiresAt: Date.now() + 60000,
   };
 }
-function completeOrders() {
+export function completeOrders() {
   for (const order of Object.values(db.orders)) {
     if (
       !order ||
@@ -77,13 +80,24 @@ function completeOrders() {
       Date.now() - order.createdAt < 1500
     )
       continue;
-    order.status = db.scenario === "payment-refused" ? "refused" : "confirmed";
+    order.status = !order.quote.items.every(
+      (i) => (db.nfts.find((n) => n.id === i.nftId)?.stock ?? 0) >= i.quantity,
+    )
+      ? "refused"
+      : (order.outcome ??
+        (db.scenario === "payment-refused" ? "refused" : "confirmed"));
     order.version++;
     if (order.status === "confirmed") {
       for (const item of order.quote.items) {
         const nft = db.nfts.find((n) => n.id === item.nftId)!;
         nft.stock -= item.quantity;
         nft.version++;
+        publish("nft.updated", {
+          eventId: crypto.randomUUID(),
+          resourceId: nft.id,
+          version: nft.version,
+          data: structuredClone(nft),
+        });
       }
       db.carts[order.userId] = (db.carts[order.userId] ?? []).flatMap((i) => {
         const bought =
@@ -93,6 +107,13 @@ function completeOrders() {
           : [];
       });
     }
+    publish("order.updated", {
+      eventId: crypto.randomUUID(),
+      resourceId: order.id,
+      version: order.version,
+      userId: order.userId,
+      data: structuredClone(order),
+    });
   }
   save();
 }
@@ -131,6 +152,29 @@ export const handlers = [
         if (db.session) db.session.expiresAt = 0;
         save();
         return HttpResponse.json({ ok: true });
+      }
+      if (path === "/mock/nft") {
+        const nft = db.nfts.find((n) => n.id === String(body.id));
+        if (!nft) fail(404, "NFT não encontrado");
+        if (body.price !== undefined) {
+          if (!/^\d+(\.\d{1,18})?$/.test(String(body.price)))
+            fail(422, "Preço inválido");
+          nft.price = String(body.price);
+        }
+        if (body.stock !== undefined) {
+          if (!Number.isInteger(body.stock) || Number(body.stock) < 0)
+            fail(422, "Estoque inválido");
+          nft.stock = Number(body.stock);
+        }
+        nft.version++;
+        save();
+        publish("nft.updated", {
+          eventId: crypto.randomUUID(),
+          resourceId: nft.id,
+          version: nft.version,
+          data: structuredClone(nft),
+        });
+        return HttpResponse.json(nft);
       }
       await delay(
         db.scenario === "slow"
@@ -190,6 +234,7 @@ export const handlers = [
         )
           fail(401, "Credenciais inválidas");
         db.session = {
+          token: crypto.randomUUID(),
           user: publicUser(account),
           expiresAt: Date.now() + 30 * 60000,
         };
@@ -205,7 +250,7 @@ export const handlers = [
           else
             cart.push({ ...guest, quantity: Math.min(stock, guest.quantity) });
         }
-        db.carts[account.id] = cart;
+        db.carts[account.id] = cart.filter((i) => i.quantity > 0);
         db.carts.guest = [];
         save();
         return HttpResponse.json(db.session);
@@ -214,8 +259,10 @@ export const handlers = [
         return HttpResponse.json({
           user: user(),
           expiresAt: db.session!.expiresAt,
+          token: db.session!.token,
         });
       if (path === "/auth/logout") {
+        if (request.headers.has("X-Session-Token")) sessionUser(request);
         db.session = null;
         save();
         return HttpResponse.json({ ok: true });
@@ -285,10 +332,18 @@ export const handlers = [
         else {
           const nft = db.nfts.find((n) => n.id === String(body.nftId));
           if (!nft) fail(404, "NFT não encontrado");
-          const quantity = Number(body.quantity);
+          const quantity =
+            Number(body.quantity) +
+            (body.mode === "add"
+              ? (cart.find(
+                  (i) =>
+                    i.nftId === nft.id && i.edition === String(body.edition),
+                )?.quantity ?? 0)
+              : 0);
           const edition = String(body.edition);
           if (
             typeof body.quantity !== "number" ||
+            body.quantity < 1 ||
             !Number.isInteger(quantity) ||
             quantity < 1
           )
@@ -323,6 +378,31 @@ export const handlers = [
         save();
         return HttpResponse.json(result);
       }
+      if (path === "/wallet-connection") {
+        const id = user().id;
+        if (method === "DELETE") {
+          for (const [key, connection] of Object.entries(db.connections))
+            if (connection?.userId === id) delete db.connections[key];
+          save();
+          return HttpResponse.json({ ok: true });
+        }
+        if (db.scenario === "wallet-refused")
+          fail(422, "Conexão recusada pelo colecionador");
+        const wallet = (db.wallets[id] ?? []).find(
+          (w) => w.id === body.walletId,
+        );
+        if (!wallet || wallet.network !== body.network)
+          fail(422, "Selecione carteira e rede compatíveis");
+        const connectionId = crypto.randomUUID();
+        db.connections[connectionId] = {
+          userId: id,
+          walletId: wallet.id,
+          token: db.session?.token,
+          network: wallet.network,
+        };
+        save();
+        return HttpResponse.json({ connectionId });
+      }
       if (path === "/profile/password") {
         const account = db.users.find((u) => u.id === user().id)!;
         if (
@@ -339,12 +419,42 @@ export const handlers = [
       if (path === "/profile") {
         const account = db.users.find((u) => u.id === user().id)!;
         if (method === "PATCH") {
+          const updated = { ...account };
           if (String(body.displayName ?? "").trim().length < 2)
             fail(422, "Nome obrigatório", {
               displayName: "Mínimo 2 caracteres",
             });
-          account.displayName = String(body.displayName);
+          updated.displayName = String(body.displayName);
+          if (body.ens !== undefined) updated.ens = String(body.ens);
+          if (body.walletNickname !== undefined)
+            updated.walletNickname = String(body.walletNickname);
+          if (body.email !== undefined) {
+            const email = String(body.email).trim().toLowerCase();
+            if (!/^\S+@\S+\.\S+$/.test(email))
+              fail(422, "E-mail inválido", {
+                email: "Informe um e-mail válido",
+              });
+            if (db.users.some((u) => u.id !== account.id && u.email === email))
+              fail(409, "E-mail já cadastrado");
+            updated.email = email;
+          }
+          if (body.username !== undefined) {
+            const username = String(body.username).trim();
+            if (username.length < 3)
+              fail(422, "Usuário inválido", {
+                username: "Mínimo 3 caracteres",
+              });
+            if (
+              db.users.some(
+                (u) => u.id !== account.id && u.username === username,
+              )
+            )
+              fail(409, "Usuário já cadastrado");
+            updated.username = username;
+          }
           if (body.avatar !== undefined) {
+            if (String(body.avatar).length > 1400000)
+              fail(422, "Avatar excede 1 MB");
             if (
               !/^data:image\/(png|jpeg|webp);base64,/.test(
                 String(body.avatar),
@@ -352,8 +462,9 @@ export const handlers = [
               body.avatar !== ""
             )
               fail(422, "Avatar deve ser uma imagem local");
-            account.avatar = String(body.avatar);
+            updated.avatar = String(body.avatar);
           }
+          Object.assign(account, updated);
           db.session!.user = publicUser(account);
           save();
         }
@@ -365,23 +476,37 @@ export const handlers = [
         if (method === "POST" || method === "PATCH") {
           const wallet = body as unknown as Wallet;
           if (
-            !wallet.name ||
+            typeof wallet.name !== "string" ||
+            wallet.name.trim().length < 2 ||
             !/^0x[a-fA-F0-9]{40}$/.test(wallet.address) ||
             !["Ethereum", "Polygon", "Solana"].includes(wallet.network)
           )
             fail(422, "Revise nome, endereço e rede");
           const walletId = path.split("/")[2];
+          if (method === "POST" && wallets.length >= 2)
+            fail(409, "Limite de duas carteiras");
           if (method === "PATCH" && !wallets.some((w) => w.id === walletId))
             fail(404, "Carteira não encontrada");
           db.wallets[id] = [
             ...wallets.filter((w) => w.id !== walletId),
             {
+              role:
+                wallet.role ??
+                (method === "POST" && wallets.length ? "secondary" : "primary"),
+              nickname: wallet.nickname,
+              profileName: wallet.profileName,
+              ens: wallet.ens,
               name: wallet.name,
               address: wallet.address,
               network: wallet.network,
               id: method === "POST" ? crypto.randomUUID() : walletId,
             },
           ];
+          db.wallets[id].sort(
+            (a, b) =>
+              (a.role === "secondary" ? 1 : 0) -
+              (b.role === "secondary" ? 1 : 0),
+          );
           save();
         }
         return HttpResponse.json(db.wallets[id] ?? []);
@@ -394,6 +519,8 @@ export const handlers = [
         const canonical = JSON.stringify({
           quoteId: input.quoteId,
           walletId: input.walletId,
+          collector: input.collector,
+          connectionId: input.connectionId,
         });
         const previous = db.attempts[`${id}:${key}`];
         if (previous) {
@@ -416,11 +543,46 @@ export const handlers = [
                 : nft.price;
             nft.stock = db.scenario === "sold-out" ? 0 : nft.stock;
             nft.version++;
+            publish("nft.updated", {
+              eventId: crypto.randomUUID(),
+              resourceId: nft.id,
+              version: nft.version,
+              data: structuredClone(nft),
+            });
           }
           db.scenario = "success";
           save();
         }
         const current = quote(id, stored.quote.coupon);
+        if (input.collector) {
+          const fields: Record<string, string> = {};
+          for (const name of [
+            "displayName",
+            "username",
+            "profileName",
+            "email",
+            "network",
+            "walletAddress",
+            "walletType",
+            "referralCode",
+            "ensName",
+          ])
+            if (!input.collector[name]?.trim())
+              fields[name] = "Campo obrigatório";
+          if (!/^\S+@\S+\.\S+$/.test(input.collector.email ?? ""))
+            fields.email = "E-mail inválido";
+          if (Object.keys(fields).length)
+            fail(422, "Revise os dados do colecionador", fields);
+          const connection = db.connections[input.connectionId ?? ""];
+          if (
+            !connection ||
+            connection.userId !== id ||
+            connection.walletId !== input.walletId ||
+            connection.token !== db.session?.token ||
+            connection.network !== input.collector.network
+          )
+            fail(422, "Conecte a carteira na rede selecionada");
+        }
         if (!current.items.length) fail(422, "Carrinho vazio");
         if (
           stored.quote.expiresAt < Date.now() ||
@@ -449,11 +611,16 @@ export const handlers = [
           (w) => w.id === input.walletId,
         );
         if (!wallet) fail(422, "Selecione uma carteira cadastrada");
+        if (input.collector && input.collector.walletAddress !== wallet.address)
+          fail(422, "Endereco diferente da carteira conectada", {
+            walletAddress: "Revise a carteira selecionada",
+          });
         const orderId = crypto.randomUUID();
         db.orders[orderId] = {
           id: orderId,
           userId: id,
           status: "pending",
+          outcome: db.scenario === "payment-refused" ? "refused" : "confirmed",
           quote: structuredClone(stored.quote),
           wallet: structuredClone(wallet),
           transactionId: `simulated-${orderId}`,

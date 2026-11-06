@@ -36,7 +36,10 @@ export const http = axios.create({
 });
 http.interceptors.request.use((config) => {
   const session = queryClient.getQueryData<Session | null>(["session"]);
-  if (session) config.headers.set("X-Session-User", session.user.id);
+  if (session) {
+    config.headers.set("X-Session-User", session.user.id);
+    if (session.token) config.headers.set("X-Session-Token", session.token);
+  }
   return config;
 });
 export const message = (error: unknown) =>
@@ -137,6 +140,8 @@ export const orderOptions = (id: string, orderId: string) =>
 export const createOrder = (input: OrderInput, key: string) =>
   send<Order>("/orders", input, "POST", { "Idempotency-Key": key });
 export async function clearPrivate() {
+  const { stopRealtime } = await import("./realtime");
+  stopRealtime();
   await queryClient.cancelQueries();
   queryClient.removeQueries({ queryKey: ["private"] });
   queryClient.removeQueries({ queryKey: ["session"] });

@@ -8,7 +8,7 @@ import {
   send,
   sessionOptions,
 } from "./client";
-import type { CartLine } from "./contracts";
+import type { CartLine, Session } from "./contracts";
 
 export function useIdentity() {
   const session = useQuery(sessionOptions);
@@ -18,6 +18,7 @@ export function useCart() {
   const { id } = useIdentity();
   const query = useQuery(cartOptions(id));
   const mutation = useMutation({
+    scope: { id: "cart:" + id },
     mutationFn: (input: {
       item?: CartLine;
       nftId?: string;
@@ -35,6 +36,7 @@ export function useCart() {
             nftId: input.item?.nftId ?? input.nftId,
             edition: input.item?.edition ?? input.edition,
             quantity: input.quantity,
+            mode: input.item ? "replace" : "add",
           }),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["private", id] }),
@@ -58,7 +60,10 @@ export function useFavorites(nftId: string) {
       return { previous };
     },
     onError: (_error, _variables, context) => {
-      if (context?.previous)
+      if (
+        context?.previous &&
+        queryClient.getQueryData<Session | null>(["session"])?.user.id === id
+      )
         queryClient.setQueryData(options.queryKey, context.previous);
     },
     onSettled: () =>

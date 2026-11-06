@@ -1,5 +1,33 @@
 # Auditoria do NFT Marketplace
 
+## Atualização — etapa 3 (06/11/2026)
+
+Esta atualização é o diagnóstico vigente para os itens abaixo; as seções anteriores preservadas mais adiante são históricas.
+
+Verificações finais: typecheck, lint e build aprovados; worker presente em dist. Com app em execução em localhost:3002, `/`, `/profile`, `/wallets`, `/payment`, `/mockServiceWorker.js` e os módulos de hooks/realtime responderam HTTP 200. Isso valida a entrega dos arquivos e o fallback local, sem comprovar renderização ou operação por teclado. Persistem os avisos preexistentes de CSS inválido e chunk acima de 500 kB; não foram feitas alterações de identidade visual para eliminá-los nesta etapa.
+
+| Requisito                                                         | Status | Evidência atual e limites                                                                                                                                        |
+| ----------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Carrinho por NFT/edição, persistência e merge visitante/login     | ✅     | handlers MSW; add soma quantidades, edição substitui; estoque validado; operações serializadas por usuário                                                       |
+| Cupom aplicar/remover e inválido/expirado; ETH decimal exato      | ✅     | cotação autoritativa em strings, BigInt; testes de rede; botão alterna Aplicar/Remover                                                                           |
+| Mudanças de preço/estoque no carrinho/checkout                    | ✅     | nft.updated pelo socket; invalidação de catálogo/detalhe/carrinho/cotação, aviso de status; 409 para cotação antiga                                              |
+| Coletor, carteira/rede, conexão/recusa/desconexão e revisão       | ✅     | useCheckout; campos obrigatórios também no mobile; APIs de conexão e validação; revisão antes do envio                                                           |
+| Revalidação e nova confirmação após alterações                    | ✅     | fingerprint da cotação, preflight REST e validação final no mock; evento torna revisão anterior inválida                                                         |
+| Clique repetido, timeout e recuperação do mesmo pedido            | ✅     | trava síncrona, botão pendente, chave/corpo em sessionStorage por usuário; reenvio idempotente                                                                   |
+| Pendente/confirmado/recusado, refresh e reconexão                 | ✅     | order.updated e reconciliação REST; terminalidade no mock e no cache; fallback de polling                                                                        |
+| Recibo snapshot; falhas preservam itens; remover somente comprado | ✅     | snapshots de carteira/cotação; subtotal/desconto/taxa/total exibidos; teste preserva acréscimos posteriores                                                      |
+| Sessão e expiração com retomada; limpeza de dados/subscriptions   | ✅     | token recuperável, revalidação periódica, guardas, interceptor 401, rascunho por usuário e cleanup do socket; respostas de sessão antiga não redirecionam a nova |
+| Perfil, avatar, senha e carteiras principal/secundária            | ✅     | novas rotas protegidas, formulários responsivos seguindo referências; validações e persistência MSW, erros de API; avatar PNG/JPEG/WebP local                    |
+| socket.io-client + MSW socket.io-binding                          | ✅     | binding 0.2.0, WebSocket com handshake, heartbeat, subscribe e ready; mesma fonte de dados REST/eventos                                                          |
+| IDs, versões, duplicatas/antigos, isolamento e cleanup            | ✅     | ResourceEvent, eventGate, token por ciclo, filtros por usuário, fechamento e liberação de timers/listeners                                                       |
+| Skeletons/shimmer/reduced motion                                  | ✅     | CatalogSkeleton, DetailSkeleton, SummarySkeleton; CSS desativa animação por preferência                                                                          |
+| Layout shift e fidelidade visual em execução                      | ⚠️     | containers/aspect ratios no código; nenhuma medição de CLS ou inspeção visual nesta sessão                                                                       |
+| Testes REST e conta                                               | ✅     | `npm run test:integration`: 60 verificações via Axios/MSW                                                                                                        |
+| Testes de tempo real                                              | ✅     | `npm run test:realtime`: 17 verificações pelo cliente Socket.IO, incluindo duplicatas/antigos transportados e recuperação de pedido                              |
+| Validação manual com app aberto                                   | ⚠️     | Browser retornou “No browser is available”; descoberta retornou lista vazia; solicitada conexão ao usuário                                                       |
+
+Documentação de transporte, limitações e cenários em `docs/MOCKS.md`; contratos e arquitetura atualizados. Os testes de rede são executáveis e não substituem testes E2E ou medição visual. Permanecem pendentes Playwright, regressão visual, Lighthouse e deploy público; portanto a entrega completa do desafio ainda não pode ser declarada concluída.
+
 ## Correção de carregamento dos módulos — 06/11/2026
 
 O matcher `*/api/*` também capturava `/src/api/hooks.tsx`, devolvendo 404 e impedindo o import dinâmico da página inicial. O teste de regressão reproduziu o 404 antes da correção. O handler agora usa uma expressão regular ancorada na origem e em `/api/`, deixando módulos Vite e assets seguirem para o servidor. A regra não depende da porta, funcionando também quando Vite usa 3001.
@@ -29,7 +57,7 @@ Esta seção substitui o diagnóstico inicial para os itens abaixo. O restante d
 | Verificação de tipos                                                                        | ✅     | npm.cmd run typecheck — exit 0                                                                             | Quatro erros iniciais corrigidos.                                                        |
 | Lint                                                                                        | ✅     | npm.cmd run lint — exit 0                                                                                  | Worker gerado excluído do lint tipado.                                                   |
 | Build                                                                                       | ✅     | npm.cmd run build — exit 0; worker copiado para dist                                                       | Permanecem avisos preexistentes de CSS inválido e chunk >500 kB; visual não redesenhado. |
-| Testes de integração de rede                                                                | ✅     | npm.cmd run test:integration: 43 checks aprovados; scripts/test-integration.mjs                     | Axios + mesmos handlers MSW; não substituem Playwright.                                  |
+| Testes de integração de rede                                                                | ✅     | npm.cmd run test:integration: 43 checks aprovados; scripts/test-integration.mjs                            | Axios + mesmos handlers MSW; não substituem Playwright.                                  |
 | App rodando e smoke HTTP                                                                    | ✅     | Vite localhost:3000; GET /, /product/1 e /mockServiceWorker.js retornam 200                                | HTTP comprova entrega de arquivos, não interação da UI.                                  |
 | Validação manual dos cenários na interface                                                  | ⚠️     | Browser: “No browser is available”; lista de navegadores vazia                                             | Não executada por falta de navegador conectado. Roteiro reproduzível abaixo.             |
 

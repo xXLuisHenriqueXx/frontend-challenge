@@ -54,6 +54,14 @@ export function Header() {
         </nav>
 
         <div className="flex items-center justify-end gap-3">
+          {session.data && (
+            <button
+              onClick={() => void navigate({ to: "/profile" })}
+              aria-label="Meu perfil"
+            >
+              {session.data.user.displayName}
+            </button>
+          )}
           <Button
             className="[&>svg]:size-5.5"
             variant="ghost"

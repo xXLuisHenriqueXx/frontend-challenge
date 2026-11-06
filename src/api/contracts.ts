@@ -44,6 +44,8 @@ export interface Catalog {
   pages: number;
 }
 export interface User {
+  ens?: string;
+  walletNickname?: string;
   id: string;
   email: string;
   username: string;
@@ -51,10 +53,15 @@ export interface User {
   avatar: string;
 }
 export interface Session {
+  token?: string;
   user: User;
   expiresAt: number;
 }
 export interface Wallet {
+  role?: "primary" | "secondary";
+  nickname?: string;
+  profileName?: string;
+  ens?: string;
   id: string;
   name: string;
   address: string;
@@ -81,6 +88,7 @@ export interface Quote {
   expiresAt: number;
 }
 export interface Order {
+  outcome?: "confirmed" | "refused";
   id: string;
   userId: string;
   status: "pending" | "confirmed" | "refused";
@@ -96,8 +104,18 @@ export interface ApiError {
   fields?: Record<string, string>;
 }
 export interface OrderInput {
+  connectionId?: string;
+  collector?: Partial<Record<string, string>>;
   quoteId: string;
   walletId: string;
+}
+export interface ResourceEvent {
+  eventId: string;
+  resourceId: string;
+  version: number;
+  userId?: string;
+  sessionToken?: string;
+  data: Nft | Order;
 }
 export const units = (v: string) => {
   const [whole, fraction = ""] = v.split(".");

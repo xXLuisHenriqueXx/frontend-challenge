@@ -1,3 +1,4 @@
+import { Realtime } from "@/api/realtime";
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
@@ -18,6 +19,7 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <>
+      <Realtime />
       <Outlet />
       <TanStackDevtools
         config={{

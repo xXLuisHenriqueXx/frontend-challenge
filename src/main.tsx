@@ -15,10 +15,20 @@ async function bootstrap() {
   http.interceptors.response.use(
     (response) => response,
     async (error: unknown) => {
+      if (isAxiosError(error)) {
+        const sentToken = error.config?.headers.get("X-Session-Token");
+        const current = queryClient.getQueryData<{ token?: string } | null>([
+          "session",
+        ]);
+        if (sentToken && sentToken !== current?.token)
+          return Promise.reject(error);
+      }
       if (
         isAxiosError(error) &&
         error.response?.status === 401 &&
-        !error.config?.url?.startsWith("/auth/")
+        (!error.config?.url?.startsWith("/auth/") ||
+          (error.config.url === "/auth/session" &&
+            !!queryClient.getQueryData(["session"])))
       ) {
         await queryClient.cancelQueries({ queryKey: ["private"] });
         queryClient.removeQueries({ queryKey: ["private"] });

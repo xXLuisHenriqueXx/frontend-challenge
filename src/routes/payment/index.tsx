@@ -1,12 +1,8 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useCheckout } from "@/api/checkout";
+import { errorsFor } from "@/components/Account";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, createFileRoute, Link } from "@tanstack/react-router";
-import {
-  requireSession,
-  walletOptions,
-  quoteOptions,
-  createOrder,
-  message,
-} from "@/api/client";
+import { requireSession, walletOptions, message } from "@/api/client";
 import { multiply } from "@/api/contracts";
 import { useIdentity, RemoteState } from "@/api/hooks";
 import type { Wallet as WalletData } from "@/api/contracts";
@@ -160,8 +156,18 @@ function RouteComponent() {
   const { id } = useIdentity();
   const navigate = useNavigate();
   const wallets = useQuery(walletOptions(id));
-  const quote = useQuery(quoteOptions(id));
+
   const SAVED_WALLETS = wallets.data ?? [];
+  const [savedWallet, setSavedWallet] = useState("");
+  const walletId = savedWallet || SAVED_WALLETS[0]?.id || "";
+  const [provider, setProvider] = useState("coinbase");
+  const selectedWallet = SAVED_WALLETS.find((w) => w.id === walletId);
+  const [networkChoice, setNetworkChoice] = useState("");
+  const network = networkChoice || selectedWallet?.network || "";
+  const checkout = useCheckout(id, walletId, network);
+  const { quote, mutation } = checkout;
+  const session = useIdentity();
+
   const NFTS =
     quote.data?.items.map((i) => ({
       id: i.tokenId,
@@ -169,54 +175,20 @@ function RouteComponent() {
       qty: i.quantity,
       price: multiply(i.price, i.quantity),
     })) ?? [];
-  const [savedWallet, setSavedWallet] = useState("");
-  const walletId = savedWallet || SAVED_WALLETS[0]?.id || "";
-  const mutation = useMutation({
-    mutationFn: async () => {
-      const storageKey = "kurio.attempt." + id;
-      const previous = sessionStorage.getItem(storageKey);
-      let attempt: { key: string; quoteId: string; walletId: string };
-      if (previous) attempt = JSON.parse(previous) as typeof attempt;
-      else {
-        if (!quote.data) throw new Error("Aguarde a cota??o");
-        attempt = {
-          key: crypto.randomUUID(),
-          quoteId: quote.data.id,
-          walletId,
-        };
-        sessionStorage.setItem(storageKey, JSON.stringify(attempt));
-      }
-      try {
-        const order = await createOrder(
-          { quoteId: attempt.quoteId, walletId: attempt.walletId },
-          attempt.key,
-        );
-        sessionStorage.removeItem(storageKey);
-        await navigate({
-          to: "/payment/confirm",
-          search: { orderId: order.id },
-        });
-      } catch (error) {
-        const { isAxiosError } = await import("axios");
-        if (
-          isAxiosError(error) &&
-          error.response &&
-          error.response.status !== 401
-        ) {
-          sessionStorage.removeItem(storageKey);
-          await quote.refetch();
-        }
-        throw error;
-      }
-    },
-  });
-  const [provider, setProvider] = useState("coinbase");
-
   return (
     <main className="mx-auto flex flex-col w-full max-w-300 min-h-dvh py-8 px-7 lg:min-h-0 lg:px-6 lg:py-10">
       <RemoteState query={wallets} />
       <RemoteState query={quote} />
-      {mutation.isError && <p role="alert">{message(mutation.error)}</p>}
+      {mutation.isError && (
+        <div role="alert">
+          <p>{message(mutation.error)}</p>
+          {Object.entries(errorsFor(mutation.error)).map(([name, error]) => (
+            <p key={name}>
+              {name}: {error}
+            </p>
+          ))}
+        </div>
+      )}
       <header className="flex flex-row items-center mb-4 lg:hidden">
         <Link
           to="/"
@@ -257,40 +229,81 @@ function RouteComponent() {
       </nav>
 
       <div className="flex flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-12 xl:grid-cols-[minmax(0,1fr)_405px]">
-        <section className="hidden lg:block">
+        <section>
           <h2 className="mb-4 font-bold">Perfil do colecionador</h2>
 
           <form
+            ref={checkout.form}
             id="collector-form"
-            className="grid grid-cols-2 gap-x-6 gap-y-5"
+            onChange={() => {
+              checkout.persist();
+              checkout.resetReview();
+            }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5"
             onSubmit={(e) => e.preventDefault()}
           >
             <Field label="Nome de exibição" required>
-              <input className={fieldClass} name="displayName" />
+              <input
+                className={fieldClass}
+                name="displayName"
+                required
+                minLength={2}
+                defaultValue={
+                  checkout.draft.displayName ?? session.data?.user.displayName
+                }
+              />
             </Field>
 
             <Field label="Nome de usuário" required>
-              <input className={fieldClass} name="username" />
+              <input
+                className={fieldClass}
+                name="username"
+                required
+                minLength={3}
+                defaultValue={
+                  checkout.draft.username ?? session.data?.user.username
+                }
+              />
             </Field>
 
             <Field label="Rede" required>
-              <select className={fieldClass} name="network" defaultValue="">
+              <select
+                className={fieldClass}
+                name="network"
+                required
+                value={network}
+                onChange={(e) => {
+                  setNetworkChoice(e.target.value);
+                  checkout.resetConnection();
+                }}
+              >
                 <option value="" disabled>
                   Selecione uma rede
                 </option>
-                <option value="ethereum">Ethereum</option>
-                <option value="polygon">Polygon</option>
+                <option value="Ethereum">Ethereum</option>
+                <option value="Polygon">Polygon</option>
+                <option value="Solana">Solana</option>
               </select>
             </Field>
 
             <Field label="Nome do perfil" required>
-              <input className={fieldClass} name="profileName" />
+              <input
+                className={fieldClass}
+                name="profileName"
+                required
+                defaultValue={
+                  checkout.draft.profileName ?? session.data?.user.displayName
+                }
+              />
             </Field>
 
             <Field label="Endereço da carteira" required>
               <input
                 className={fieldClass}
                 name="walletAddress"
+                required
+                readOnly
+                value={selectedWallet?.address ?? ""}
                 placeholder="Endereço 0x da carteira"
               />
             </Field>
@@ -299,12 +312,22 @@ function RouteComponent() {
               <input
                 className={fieldClass}
                 name="secondaryWallet"
+                defaultValue={checkout.draft.secondaryWallet ?? ""}
                 placeholder="ENS ou carteira secundária (opcional)"
               />
             </Field>
 
             <Field label="Tipo de carteira" required>
-              <select className={fieldClass} name="walletType" defaultValue="">
+              <select
+                className={fieldClass}
+                name="walletType"
+                required
+                value={provider}
+                onChange={(e) => {
+                  setProvider(e.target.value);
+                  checkout.resetConnection();
+                }}
+              >
                 <option value="" disabled>
                   Selecione uma carteira
                 </option>
@@ -317,25 +340,56 @@ function RouteComponent() {
             </Field>
 
             <Field label="Código de indicação" required>
-              <input className={fieldClass} name="referralCode" />
+              <input
+                className={fieldClass}
+                name="referralCode"
+                required
+                minLength={3}
+                defaultValue={checkout.draft.referralCode ?? ""}
+              />
             </Field>
 
             <Field label="E-mail" required>
-              <input className={fieldClass} name="email" type="email" />
+              <input
+                className={fieldClass}
+                name="email"
+                type="email"
+                required
+                defaultValue={checkout.draft.email ?? session.data?.user.email}
+              />
             </Field>
 
             <Field label="Nome ENS" required>
-              <select
-                className={`${fieldClass} w-auto self-start`}
-                name="ens"
-                defaultValue=".eth"
-              >
-                <option value=".eth">.eth</option>
-              </select>
+              <div className="flex gap-2">
+                <select
+                  className={`${fieldClass} w-auto self-start`}
+                  name="ens"
+                  defaultValue=".eth"
+                >
+                  <option value=".eth">.eth</option>
+                </select>
+                <input
+                  className={fieldClass}
+                  name="ensName"
+                  aria-label="Nome ENS"
+                  required
+                  defaultValue={
+                    checkout.draft.ensName ??
+                    session.data?.user.ens ??
+                    session.data?.user.username
+                  }
+                />
+              </div>
             </Field>
 
             <label className="col-span-2 flex items-center gap-2 text-sm cursor-pointer">
-              <input type="checkbox" name="useOtherWallet" />
+              <input
+                type="checkbox"
+                name="useOtherWallet"
+                onChange={(e) => {
+                  if (e.target.checked) void navigate({ to: "/wallets" });
+                }}
+              />
               Usar outra carteira?
             </label>
 
@@ -346,6 +400,7 @@ function RouteComponent() {
               <textarea
                 className={`${fieldClass} h-40 resize-none py-3`}
                 name="note"
+                defaultValue={checkout.draft.note ?? ""}
               />
             </Field>
           </form>
@@ -353,11 +408,15 @@ function RouteComponent() {
 
         <aside className="flex flex-1 flex-col justify-between gap-6 lg:flex-none lg:justify-start lg:gap-5">
           <div className="flex flex-col gap-4 lg:gap-5">
-            <div className="flex flex-col gap-4 lg:hidden">
+            <div className="flex flex-col gap-4">
               <div className="flex flex-row justify-between">
                 <p className="font-bold">Carteira conectada</p>
 
-                <Button variant="link" size="link">
+                <Button
+                  onClick={() => void navigate({ to: "/wallets" })}
+                  variant="link"
+                  size="link"
+                >
                   Trocar carteira
                 </Button>
               </div>
@@ -368,7 +427,11 @@ function RouteComponent() {
                     key={wallet.id}
                     wallet={wallet}
                     checked={walletId === wallet.id}
-                    onSelect={() => setSavedWallet(wallet.id)}
+                    onSelect={() => {
+                      setSavedWallet(wallet.id);
+                      setNetworkChoice(wallet.network);
+                      checkout.resetConnection();
+                    }}
                   />
                 ))}
               </div>
@@ -409,7 +472,11 @@ function RouteComponent() {
 
               <p className="mt-3 text-center text-sm">
                 Tem um código promocional?{" "}
-                <Button variant="link" size="link">
+                <Button
+                  onClick={() => void navigate({ to: "/cart" })}
+                  variant="link"
+                  size="link"
+                >
                   Aplique aqui
                 </Button>
               </p>
@@ -439,7 +506,10 @@ function RouteComponent() {
                   key={p.id}
                   provider={p}
                   checked={provider === p.id}
-                  onSelect={() => setProvider(p.id)}
+                  onSelect={() => {
+                    setProvider(p.id);
+                    checkout.resetConnection();
+                  }}
                 />
               ))}
             </div>
@@ -456,13 +526,34 @@ function RouteComponent() {
           </div>
 
           <Button
+            onClick={() => checkout.connect.mutate()}
+            disabled={checkout.connect.isPending || !walletId}
+            variant="outline"
+          >
+            {checkout.connected ? "Desconectar carteira" : "Conectar carteira"}
+          </Button>
+          {checkout.connect.isError && (
+            <p role="alert">{message(checkout.connect.error)}</p>
+          )}
+          {checkout.reviewed && (
+            <p role="status">
+              Revise os itens, a carteira, a rede e o total acima. Confirme para
+              enviar o pedido.
+            </p>
+          )}
+          <Button
             disabled={
-              mutation.isPending || !walletId || !quote.data?.items.length
+              mutation.isPending ||
+              (!checkout.recovering && (!walletId || !quote.data?.items.length))
             }
             onClick={() => mutation.mutate()}
             className="w-full rounded-full lg:rounded-md lg:h-11"
           >
-            Confirmar compra
+            {checkout.recovering
+              ? "Recuperar tentativa"
+              : checkout.reviewed
+                ? "Confirmar compra"
+                : "Revisar compra"}
           </Button>
         </aside>
       </div>

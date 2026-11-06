@@ -1,3 +1,4 @@
+import { CatalogSkeleton } from "@/components/Skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { catalogOptions } from "@/api/client";
 import { RemoteState } from "@/api/hooks";
@@ -6,6 +7,7 @@ import ProductCard from "./ProductCard";
 
 function Products() {
   const query = useQuery(catalogOptions(Route.useSearch()));
+  if (query.isPending) return <CatalogSkeleton />;
   return (
     <>
       <RemoteState query={query} />

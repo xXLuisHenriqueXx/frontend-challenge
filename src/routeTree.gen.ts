@@ -13,7 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CartIndexRouteImport } from './routes/cart/index'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as PaymentIndexRouteImport } from './routes/payment/index'
+import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as RegisterIndexRouteImport } from './routes/register/index'
+import { Route as WalletsIndexRouteImport } from './routes/wallets/index'
 import { Route as PaymentConfirmIndexRouteImport } from './routes/payment/confirm/index'
 import { Route as ProductProductIdIndexRouteImport } from './routes/product/$productId/index'
 
@@ -37,9 +39,19 @@ const PaymentIndexRoute = PaymentIndexRouteImport.update({
   path: '/payment/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterIndexRoute = RegisterIndexRouteImport.update({
   id: '/register/',
   path: '/register/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WalletsIndexRoute = WalletsIndexRouteImport.update({
+  id: '/wallets/',
+  path: '/wallets/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaymentConfirmIndexRoute = PaymentConfirmIndexRouteImport.update({
@@ -58,7 +70,9 @@ export interface FileRoutesByFullPath {
   '/cart/': typeof CartIndexRoute
   '/login/': typeof LoginIndexRoute
   '/payment/': typeof PaymentIndexRoute
+  '/profile/': typeof ProfileIndexRoute
   '/register/': typeof RegisterIndexRoute
+  '/wallets/': typeof WalletsIndexRoute
   '/payment/confirm/': typeof PaymentConfirmIndexRoute
   '/product/$productId/': typeof ProductProductIdIndexRoute
 }
@@ -67,7 +81,9 @@ export interface FileRoutesByTo {
   '/cart': typeof CartIndexRoute
   '/login': typeof LoginIndexRoute
   '/payment': typeof PaymentIndexRoute
+  '/profile': typeof ProfileIndexRoute
   '/register': typeof RegisterIndexRoute
+  '/wallets': typeof WalletsIndexRoute
   '/payment/confirm': typeof PaymentConfirmIndexRoute
   '/product/$productId': typeof ProductProductIdIndexRoute
 }
@@ -77,7 +93,9 @@ export interface FileRoutesById {
   '/cart/': typeof CartIndexRoute
   '/login/': typeof LoginIndexRoute
   '/payment/': typeof PaymentIndexRoute
+  '/profile/': typeof ProfileIndexRoute
   '/register/': typeof RegisterIndexRoute
+  '/wallets/': typeof WalletsIndexRoute
   '/payment/confirm/': typeof PaymentConfirmIndexRoute
   '/product/$productId/': typeof ProductProductIdIndexRoute
 }
@@ -88,7 +106,9 @@ export interface FileRouteTypes {
     | '/cart/'
     | '/login/'
     | '/payment/'
+    | '/profile/'
     | '/register/'
+    | '/wallets/'
     | '/payment/confirm/'
     | '/product/$productId/'
   fileRoutesByTo: FileRoutesByTo
@@ -97,7 +117,9 @@ export interface FileRouteTypes {
     | '/cart'
     | '/login'
     | '/payment'
+    | '/profile'
     | '/register'
+    | '/wallets'
     | '/payment/confirm'
     | '/product/$productId'
   id:
@@ -106,7 +128,9 @@ export interface FileRouteTypes {
     | '/cart/'
     | '/login/'
     | '/payment/'
+    | '/profile/'
     | '/register/'
+    | '/wallets/'
     | '/payment/confirm/'
     | '/product/$productId/'
   fileRoutesById: FileRoutesById
@@ -116,7 +140,9 @@ export interface RootRouteChildren {
   CartIndexRoute: typeof CartIndexRoute
   LoginIndexRoute: typeof LoginIndexRoute
   PaymentIndexRoute: typeof PaymentIndexRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
   RegisterIndexRoute: typeof RegisterIndexRoute
+  WalletsIndexRoute: typeof WalletsIndexRoute
   PaymentConfirmIndexRoute: typeof PaymentConfirmIndexRoute
   ProductProductIdIndexRoute: typeof ProductProductIdIndexRoute
 }
@@ -151,11 +177,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile/': {
+      id: '/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProfileIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register/': {
       id: '/register/'
       path: '/register'
       fullPath: '/register/'
       preLoaderRoute: typeof RegisterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wallets/': {
+      id: '/wallets/'
+      path: '/wallets'
+      fullPath: '/wallets/'
+      preLoaderRoute: typeof WalletsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/payment/confirm/': {
@@ -180,7 +220,9 @@ const rootRouteChildren: RootRouteChildren = {
   CartIndexRoute: CartIndexRoute,
   LoginIndexRoute: LoginIndexRoute,
   PaymentIndexRoute: PaymentIndexRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
   RegisterIndexRoute: RegisterIndexRoute,
+  WalletsIndexRoute: WalletsIndexRoute,
   PaymentConfirmIndexRoute: PaymentConfirmIndexRoute,
   ProductProductIdIndexRoute: ProductProductIdIndexRoute,
 }
