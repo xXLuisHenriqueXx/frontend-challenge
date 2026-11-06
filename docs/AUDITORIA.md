@@ -1,0 +1,217 @@
+# Auditoria do NFT Marketplace
+
+Data: 06/11/2026. Fonte da verdade: leitura integral de `AGENTS.md` e `docs/DESAFIO.md`. Escopo: diagnóstico, sem alteração de código da aplicação ou do enunciado.
+
+Legenda: ✅ implementado com evidência; ⚠️ parcial ou ainda não validado; ❌ ausente ou contradiz o requisito. A existência de uma tela não comprova o fluxo. Esta auditoria combina inspeção estática e comandos locais; não foram executadas avaliações visuais no navegador, Playwright ou Lighthouse. Nenhuma pontuação de performance ou conformidade visual foi presumida.
+
+## Estrutura e arquitetura encontradas
+
+- Entrada: `index.html` → `src/main.tsx` → `src/router.tsx` → `src/routeTree.gen.ts`. Renderização cliente com `ReactDOM.createRoot`; Vite + plugin do TanStack Router. Apesar do contexto mencionar Start, o código atual é uma SPA, sem plugin Start, SSR, server functions ou API routes. Falta registrar a decisão em `docs/DECISOES.md` e configurar fallback de rotas no hosting.
+- Rotas existentes: `/`, `/product/$productId`, `/cart`, `/payment`, `/payment/confirm`, `/login`, `/register`. Não há rotas de perfil e carteiras, guardas privadas ou página 404 própria.
+- Features: catálogo em `src/routes/-components/`; detalhe, carrinho e pagamento nas respectivas rotas. Estado pontual por `useState`, dados fictícios definidos nos componentes. Sem camada de domínio, transporte ou estado remoto compartilhado.
+- UI: `src/components/ui/` contém button, badge, card, field, input, label, separator e slider; `components.json` configura shadcn/base-nova. Header/Footer e barras de navegação são componentes locais. Tailwind em `src/styles.css`.
+- API, mocks e tempo real: não existem cliente Axios, contratos REST, QueryClient/provider, hooks Query, handlers MSW, fixtures de rede ou inicialização Socket.IO. Query, Axios e socket.io-client constam apenas como dependências. MSW, Playwright e Lighthouse não constam no manifesto.
+- Assets: imagens e ícones em `src/assets/`, fontes locais via fontsource; 16 referências visuais em `docs/design/`. A mesma imagem Monkey é reutilizada em NFTs diferentes.
+- Configurações: `vite.config.ts`, `tsconfig.json`, `tsr.config.json`, `eslint.config.js`, `components.json`; `yarn.lock`. Não há configurações E2E/Lighthouse, baselines ou relatórios. README ainda é o template.
+
+## Execução das verificações
+
+Ambiente: Windows/PowerShell, Node v24.14.0; dependências preexistentes em `node_modules`. Os resultados abaixo não atestam instalação reproduzível a partir de checkout limpo.
+
+| Comando | Resultado | Evidência e limitação |
+| --- | --- | --- |
+| `yarn install --frozen-lockfile` | ❌ | Yarn não instalado (`CommandNotFoundException`). |
+| `npm install --package-lock=false --ignore-scripts` | ❌ | Wrapper npm.ps1 bloqueado pela política de execução do PowerShell. |
+| `npm.cmd install --package-lock=false --ignore-scripts` | ⚠️ | Tentativa sem conclusão/output, interrompida; não considerada sucesso. Scripts de instalação desabilitados nesta tentativa de auditoria. |
+| `npm.cmd install --package-lock=false --ignore-scripts --offline --cache .audit-npm-cache` | ❌ | `ENOTCACHED` para registry.npmjs.org/eslint; também avisos de resolução de peers. Não gerado lockfile npm. Cache temporário removido após inspeção. |
+| `.\node_modules\.bin\tsc.cmd --noEmit` | ❌ exit 1 | 4 erros TS2322: Header.tsx:64 (`size="sm"`), SearchBar.tsx:19 (`icon-sm`), Sidebar.tsx:74 (callback slider incompatível com number/readonly array), Sidebar.tsx:84 (`sm`). Não existe script typecheck. |
+| `npm.cmd run lint` | ❌ exit 1 | 5 erros: import/consistent-type-specifier-style em badge.tsx:3, button.tsx:2, field.tsx:2 e cart/index.tsx:7; no-unnecessary-condition em field.tsx:195. Sem aplicar autofix. |
+| `npm.cmd run build` | ✅ exit 0, com avisos | Vite 8.3.6, 2355 módulos, 4,32 s. CSS inválido `var(--font-primary: )`; chunk facebook 531,83 kB minificado; monkey PNG 1885,43 kB. Build não executa typecheck e não comprova fluxos. |
+| `npm.cmd test` | ❌ exit 1 | Missing script: test; nenhum teste existente encontrado. |
+| `npm.cmd run test:e2e` | ❌ exit 1 | Missing script: test:e2e; sem Playwright, suites ou configuração. |
+
+## Matriz de requisitos — seções 3 a 10
+
+### 3. Telas e fluxos
+
+| Requisito | Status | Evidência (arquivo/linha/comando) | O que falta |
+| --- | --- | --- | --- |
+| Início: destaques, catálogo e navegação | ⚠️ | routes/index.tsx:15; Hero, Products, ProductCard | Integrar descoberta; dados estáticos não respondem aos controles. |
+| Busca, filtros, ordenação e paginação na URL; refresh/histórico | ❌ | SearchBar.tsx; SortSelect.tsx; Pagination.tsx:9; routes/index.tsx:15 | validateSearch, navegação por search params e consulta correspondente. |
+| Filtros combináveis e reset de página | ❌ | Sidebar.tsx:37–39; Categories.tsx:21; Products.tsx | Estados isolados, sem afetar coleção; conectar filtros e reset. |
+| Parâmetros API, vazio, erro e respostas fora de ordem | ❌ | Products.tsx:3 (PRODUCTS fixos); ausência de transporte | Query keys completas, cancelamento/descarte e estados assíncronos. |
+| Detalhe por ID, acesso direto e inexistente | ⚠️ | product/$productId/index.tsx:15,39–40 | ID apenas logado; todos mostram PRODUCT fixo. Consultar por ID, tratar 404. Hosting ainda não validado. |
+| Galeria, informações, edição e quantidade | ⚠️ | product/$productId/index.tsx:15–44,197–210 | Galeria repete imagem; limitar estoque, selecionar edição válida e rejeitar indisponível. Incremento sem teto. |
+| Favoritos persistidos e autenticados | ❌ | botão Favoritar no detalhe:74 | API, sessão, leitura/gravação, persistência e feedback. |
+| Adição ao carrinho, disponibilidade por edição | ❌ | detalhe:231; cart/index.tsx:16–49 | Botão sem operação integrada; cart começa com itens fixos. |
+| Alterar/remover quantidades | ⚠️ | cart/index.tsx:64–82 | Funcionam localmente, sem estoque máximo ou sincronização API. |
+| Refresh do carrinho e visitante → login | ❌ | cart/index.tsx:65 (useState); login/index.tsx | Persistência, identidade visitante e merge autenticado. |
+| Cupom aplicar/remover, inválido e expirado | ❌ | cart/index.tsx (promo e botão Aplicar sem handler) | Contrato de cotação e validação de cupom. |
+| Subtotal/desconto/taxa/total da API | ❌ | cart/index.tsx:61–68; payment/index.tsx:385–386 | Cotação autoritativa; pagamento exibe totais diferentes por breakpoint. |
+| Precisão ETH: strings decimais, quantidades inteiras | ❌ | cart/index.tsx:23,67; detalhe:44; confirm/index.tsx:59 | Remover aritmética IEEE-754 de valores monetários, usar representação exata e strings no transporte. |
+| Alterações de preço/estoque com carrinho aberto | ❌ | ausência Socket.IO em src | Eventos, aviso acessível e recotação. |
+| Pagamento: dados, validação e revisão | ⚠️ | payment/index.tsx:201–279,391 | Form previne submit; required é asterisco visual; botão final sem handler. Campos do coletor escondidos no mobile. |
+| Carteiras cadastradas, rede, conexão/recusa/desconexão | ❌ | payment/index.tsx:16–35,168–169 | Seleção local sobre dados fixos; falta CRUD e simulação de conexão. |
+| Revalidar preço/estoque/cupom/taxas e reconfirmar mudanças | ❌ | payment/index.tsx:391 | Cotação versionada, validação antes da criação e nova revisão. |
+| Idempotência: clique repetido, timeout e reenvio | ❌ | nenhuma criação de pedido/cliente REST | Chave estável por tentativa, recuperação e conflito se payload divergir. |
+| Pedidos pendente/confirmado/recusado e recuperação | ⚠️ | confirm/index.tsx:9–24,65–104 | Estados só visuais via URL; persistir e consultar pedido real da simulação após refresh/reconexão. |
+| Confirmação apenas após resposta confirmada | ❌ | confirm/index.tsx:15–24 | Sem status válido, assume success; acesso direto produz confirmação sem pedido. |
+| Preservar itens em falha e remover só quantidades compradas | ❌ | cart e confirmação sem estado comum | Aplicar efeito uma vez após confirmação; preservar acréscimos e itens externos ao pedido. |
+| Recibo snapshot imutável e transação simulada coerente | ❌ | confirm/index.tsx:27–60,293 | Recibo fixo e link Etherscan truncado; snapshot por pedido, sem depender do catálogo. |
+| Cadastro/login/logout/sessão API e retorno anterior | ❌ | login/index.tsx:27; register/index.tsx:29 | Formulários sem autenticação; implementar endpoints, sessão e returnTo. Link Entre do cadastro aponta para register. |
+| Proteção checkout/perfil/carteiras/favoritos/pedidos | ❌ | rotas sem beforeLoad; router.tsx | Guardas e autorização nos handlers. |
+| Refresh/expiração de sessão e retomada do checkout | ❌ | ausência de sessão/storage em src | Recuperação, tratamento 401 e preservação segura de contexto. |
+| Logout/troca: limpar cache privado e subscriptions | ❌ | sem QueryClient nem sessão | Isolar query keys e dados por usuário, cancelar requests e desconectar listeners. |
+| Perfil, avatar, senha, carteiras: validação/API/persistência | ❌ | inventário de rotas | Criar telas desktop/mobile e recursos; tratar conflitos e erros por campo. |
+| Credenciais fictícias e senhas fora de texto claro | ⚠️ | nenhum repositório de contas; inputs password existentes | Sem armazenamento observado, mas fluxo inexistente; adotar derivação/hash na simulação e documentar credenciais. |
+| Desktop/mobile e ações auxiliares coerentes | ⚠️ | classes lg nas rotas; BottomBar.tsx:69; href="#" no detalhe | Validar 390/768/1440, remover ações inertes e evitar falsa indicação de operação concluída. |
+
+### 4. Integração e estado
+
+| Requisito | Status | Evidência | O que falta |
+| --- | --- | --- | --- |
+| Router em rotas, parâmetros e proteção | ⚠️ | router.tsx; routeTree.gen.ts; confirm:16 | Rotas reais existem; completar search params e proteção. |
+| Query em consultas/mutations/cache e Axios em REST | ❌ | package.json; busca sem ocorrências em src | Dependências instaladas sem uso efetivo. Criar camada de API e providers. |
+| Contratos tipados transporte/estado/UI | ❌ | tipos locais CartItem/PaymentStatus | Tipar requests, responses, erros, eventos e domínio compartilhado. |
+| Carregamento, vazio, erro, sucesso, atualização em fundo | ⚠️ | cart/index.tsx (vazio local); confirmação estática | Estados remotos e retry de interface. |
+| Invalidação, cancelamento, isolamento por parâmetros/usuário | ❌ | sem QueryClient/useQuery/useMutation em src | Definir chaves, AbortSignal, invalidação e limpeza na sessão. |
+| Falhas sem duplicação, 404 e acesso direto | ⚠️ | Router com rotas; detalhe ignora ID | Página 404 própria, recuperação de operações e teste no hosting. |
+| Otimismo com rollback; política cache/retries documentada | ❌ | estados useState sem mutations | Uma mutation otimista real, snapshot/rollback e política documentada. |
+
+### 5. Contratos REST
+
+| Requisito | Status | Evidência | O que falta |
+| --- | --- | --- | --- |
+| Sessão/conta: cadastro/login/me/logout/expiração | ❌ | sem camada API | Endpoints e documentação. |
+| NFTs: listagem parametrizada e detalhe | ❌ | Products e PRODUCT embutidos em UI | Contratos e handlers. |
+| Favoritos: consulta/inclusão/remoção | ❌ | sem recurso de favoritos | Operações autenticadas. |
+| Carrinho: consulta/inclusão/alteração/remoção | ❌ | cart/index.tsx:65 | Operações REST e estoque por edição. |
+| Cotação: cupom, disponibilidade, desconto, taxas e total | ❌ | NETWORK_FEE e LAUNCH_DISCOUNT locais | Contrato monetário exato e expiração/versionamento. |
+| Pedidos: criação idempotente, consulta/recibo | ❌ | confirm/index.tsx:27 | Mesmo pedido para mesma chave/payload; 409 para conteúdo diferente. |
+| Perfil/avatar/senha; carteiras consulta/cadastro/edição | ❌ | rotas e serviços ausentes | Recursos e autorização por proprietário. |
+| Erros de validação, 401/403/404/409 e transitórios | ❌ | nenhum handler/contrato de erro | Envelope tipado e tratamento na interface. |
+
+### 6. MSW
+
+| Requisito | Status | Evidência | O que falta |
+| --- | --- | --- | --- |
+| Mock na rede, contratos compartilhados, sem negócio fictício na UI | ❌ | Products, cart, payment e confirm com constantes | Mover simulação para handlers MSW. |
+| Estado consistente entre recursos, persistência e reset integral | ❌ | useState independente por rota | Banco simulado persistente e reset determinístico. |
+| Fixtures variadas/paginação e dois usuários | ❌ | nove PRODUCTS fixos; sem usuários | Fixtures de rede com identidades distintas. |
+| Sucesso/vazio, latência variável e respostas fora de ordem | ❌ | sem cenários/configuração | Seed e controle determinístico de atrasos e resultados. |
+| Conexão indisponível, timeouts e HTTP 4xx/5xx | ❌ | sem handlers MSW | Cenários reproduzíveis e recuperação observável. |
+| Sessão expirada, não autorizado, conflito cadastro/validação | ❌ | sem sessão/API | Cenários e controles de disparo. |
+| Cupom inválido/expirado e preço/edição alterados | ❌ | cupom inerte e dados locais | Cenários integrados ao estoque e cotação. |
+| Timeout após criar pedido e pagamento confirmado/recusado | ❌ | estados da confirmação vêm da URL | Processamento persistente e recuperação por idempotência. |
+| Socket.IO via MSW e socket.io-client exercitado | ❌ | dependência socket.io-client sem uso; MSW ausente | Binding compatível, transporte e limitações documentados. |
+| Ativação por configuração, build demo e bootstrap antes de fetch | ❌ | main.tsx; vite.config.ts | Worker público e bootstrap browser-safe compartilhado por dev/demo/testes. |
+| Mutações simuladas refletidas em REST e eventos | ❌ | nenhuma fonte compartilhada | Fonte de dados única na simulação. |
+
+### 7. Tempo real
+
+| Requisito | Status | Evidência | O que falta |
+| --- | --- | --- | --- |
+| nft.updated: preço/estoque em catálogo/detalhe/carrinho | ❌ | sem conexão/eventos em src | Cliente Socket.IO e sincronização/invalidação coerente. |
+| order.updated: pendência → confirmação/recusa | ❌ | confirm/index.tsx:99 | Consumir eventos do pedido autorizado. |
+| Identidade estável, recurso, versão; duplicatas/eventos antigos | ❌ | sem contratos de eventos | Deduplicar eventId e rejeitar versões antigas. |
+| Reconexão reconcilia recursos ativos via REST | ❌ | sem subscriptions | Reconsultar após reconnect e refresh, inclusive pedido pendente. |
+| Isolamento de sessão e limpeza de listeners | ❌ | sem autenticação/socket | Ciclo por sessão; descartar eventos antigos e liberar listeners. |
+| NFT no carrinho muda; aviso/resumo e cotação antiga bloqueada | ❌ | cart/payment desconectados | Cenário ponta a ponta e reconfirmação obrigatória. |
+| Interrupção com pedido pendente, recuperação sem nova compra | ❌ | nenhuma persistência de pedido | ID/chave persistente, reconciliação e estados terminais irreversíveis. |
+
+### 8. Interface, responsividade e acessibilidade
+
+| Requisito | Status | Evidência | O que falta |
+| --- | --- | --- | --- |
+| Identidade Figma e shadcn adaptado | ⚠️ | docs/design; components.json; styles.css | Há tokens e componentes; comparação visual não executada. Corrigir --font-primary inválido (`##f7f3ec` e `var(--font-primary: )`). |
+| Todas as telas em 390/768/1440; zoom/overflow | ⚠️ | classes responsivas em rotas; payment:201 | Sem medição em navegador; perfil/carteiras ausentes e campos do checkout ocultos no mobile. |
+| Skeletons com shimmer: catálogo, detalhe, resumo | ❌ | ausência de skeleton/shimmer em src | Skeletons dimensionados por recurso e carregamento remoto real. |
+| Reduced motion e estabilidade de layout | ❌ | styles.css; animação Loader2 na confirmação | Implementar prefers-reduced-motion e medir CLS. |
+| Teclado e foco visível | ⚠️ | button.tsx/input.tsx focus-visible; Link envolvendo Button em cart/payment | Validar percurso, remover controles interativos aninhados e fornecer nomes para botões ícone. |
+| Foco em diálogos/drawers | ❌ | nenhum diálogo/drawer implementado | Implementar quando necessário com trap, Escape e retorno de foco. |
+| Semântica, labels e erros associados | ⚠️ | login:29 e register:32 usam placeholders; payment Field envolve input | Rotular campos de conta/busca, required real, aria-describedby/invalid e erros por campo. `index.html` usa lang=en para UI portuguesa. |
+| Alt para imagens relevantes | ⚠️ | imagens de produto têm alt; imagem Monkey repetida | Revisar significado de todos os alts em contexto e imagens decorativas. |
+| Contraste e estados não apenas por cor | ⚠️ | tokens em styles.css; seleção de categorias local | Medir contraste no navegador; revisar texto, bordas, foco e estados selecionados. |
+| Feedback acessível para mutations/eventos | ❌ | ausência de aria-live e de mutations remotas | Região de status/alerta para falhas, sucesso e mudança de preço/estoque. |
+| Assets/fontes locais e desvios documentados | ⚠️ | src/assets; @fontsource-variable/roboto | Recursos locais existem; justificar imagem repetida, fonte efetiva font-mono e desvios em ARCHITECTURE.md. |
+
+### 9. Playwright — lista completa do enunciado
+
+Não há arquivos de teste, runner, dependência Playwright ou scripts executáveis. As linhas abaixo são lacunas de cobertura, e não testes executados com falha de asserção.
+
+| Requisito | Status | Evidência | O que falta |
+| --- | --- | --- | --- |
+| 1. Busca/filtros combinados/ordenação/paginação/histórico | ❌ | inventário; npm.cmd run test:e2e | Teste E2E com URL e resultado de rede. |
+| 2. Detalhe direto e inexistente | ❌ | idem | Testar ID válido/inválido. |
+| 3. Cadastro/login/expiração/logout/troca | ❌ | idem | Testar retomada e isolamento entre duas contas. |
+| 4. Favoritos com falha e recuperação | ❌ | idem | Mutation otimista, falha MSW e rollback visível. |
+| 5. Carrinho/quantidades/remoção/cupom/refresh/login | ❌ | idem | Testar limites, persistência e merge visitante. |
+| 6. Compra catálogo → recibo confirmado | ❌ | idem | Verificar criação e snapshot devolvidos pela simulação. |
+| 7. Recusa/clique repetido/timeout e mesmo pedido | ❌ | idem | Verificar unicidade e recuperação idempotente. |
+| 8. Perfil/avatar/senha/carteiras e erros | ❌ | idem | Testar validações, autorização e persistência. |
+| 9. Preço/estoque Socket.IO durante checkout | ❌ | idem | Evento pelo socket real interceptado por MSW e recotação. |
+| 10. Duplicatas/antigos/desconexão/pendente | ❌ | idem | Garantir versão, estado terminal e reconciliação. |
+| 11. Teclado/foco de diálogos/validação | ❌ | idem | Asserções de foco e erros associados. |
+| 12. Skeleton lento/falha/retry | ❌ | idem | Controlar latência e observar recuperação. |
+| Chromium desktop/mobile | ❌ | sem playwright.config | Projetos e viewports configurados. |
+| Regressão visual início/detalhe/carrinho/pagamento | ❌ | sem baselines | Capturas versionadas com dados estáveis. |
+| Isolamento por teste, relógio/latência/eventos controlados | ❌ | sem fixtures E2E/MSW | Reset completo e controles determinísticos. |
+| Relatório HTML e traces de falhas | ❌ | nenhum relatório/trace | Configurar reporters, retenção e comandos. |
+| Asserções UI; REST via MSW e eventos via Socket.IO | ❌ | nenhuma infraestrutura | Evitar atalhos via setters/cache nos testes. |
+
+### 10. Lighthouse
+
+| Requisito | Status | Evidência | O que falta |
+| --- | --- | --- | --- |
+| Início/detalhe mobile/desktop com build otimizado e mocks padrão | ❌ | build passou; sem Lighthouse/mocks | Configurar e auditar quatro combinações. |
+| 3 medições por combinação e medianas | ❌ | nenhum relatório | Executar 12 medições, calcular mediana por categoria. |
+| Performance ≥90, Accessibility ≥95, Best Practices ≥95, SEO ≥90 | ⚠️ | nenhuma medição | Não há pontuação conhecida; medir antes de declarar atendimento. |
+| Config versionada, HTML/JSON, versões e condições | ❌ | inventário/package.json | Runner, relatórios, ambiente, cache/rede/CPU documentados. |
+| LCP/CLS/TBT e causas de metas não atingidas | ❌ | build: PNG 1,89 MB, chunk >500 kB | Medir métricas e investigar gargalos; tamanhos são indícios, não prova de pontuação baixa. |
+| Auditoria sem retirar assets/fontes/funcionalidades | ⚠️ | nenhuma auditoria | Usar mesma entrega e cenário padrão, sem otimização exclusiva para auditoria. |
+
+## Stack, documentação e entrega (seções 2, 11 e 12)
+
+React, TypeScript, TanStack Router, Tailwind e componentes shadcn têm uso efetivo. TanStack Query, Axios e Socket.IO aparecem apenas no manifesto; MSW, Playwright e Lighthouse estão ausentes. A stack obrigatória não está integralmente atendida.
+
+| Requisito | Status | Evidência | O que falta |
+| --- | --- | --- | --- |
+| Código, lockfile e assets | ⚠️ | src, yarn.lock, src/assets | Preservar lock e comprovar instalação limpa; completar mocks/testes/configs. |
+| README de execução com env/credenciais/cenários/reset/falhas | ❌ | README.md começa com template TanStack Start | Substituir na etapa final; não alterado nesta auditoria. |
+| Contratos REST/eventos, sessão/carrinho/cache/reconciliação | ❌ | sem documentação técnica correspondente | Documentar decisões efetivamente implementadas. |
+| ARCHITECTURE.md e docs/DECISOES.md | ❌ | inventário de arquivos | Registrar SPA/SSR, UX, limitações de transporte e desvios visuais. |
+| Comandos dev mocks/build/preview/types/lint/E2E/Lighthouse | ⚠️ | package.json:scripts | Build/preview/dev/lint existem; faltam demais e mocks ativos. |
+| Deploy obrigatório, URL pública e link do repositório | ⚠️ | nenhum endereço de entrega identificado | Informar e validar versão pública, rotas diretas/refresh e mocks/socket. Não foi solicitado realizar deploy nesta etapa. |
+| Checkout limpo sem serviços privados | ⚠️ | instalação não concluída; dados atuais locais | Comprovar setup reprodutível e fluxos simulados completos. |
+
+## Eliminatórios — riscos destacados
+
+| Item do enunciado | Diagnóstico |
+| --- | --- |
+| Ausência de uso efetivo da stack obrigatória | **Presente:** Query/Axios/Socket.IO sem uso; MSW e Playwright ausentes. |
+| Fluxos principais apenas visuais | **Presente:** autenticação e pagamento sem operação; carrinho apenas local e independente. |
+| Compra confirmada sem resposta da simulação | **Presente:** `/payment/confirm` assume success sem consultar pedido. Prioridade imediata. |
+| Exposição de dados entre usuários | **Não demonstrada, isolamento inexistente:** não há usuários reais simulados nem autorização. Acesso público ao recibo fixo não demonstra vazamento de conta real; requisito continua sem atendimento. |
+| Eventos simulados diretamente na UI | Não foram encontrados eventos nem simulação de tempo real; ausência de implementação não deve ser apresentada como atendimento. Implementar somente via rede MSW + Socket.IO. |
+| Ausência de testes E2E executáveis | **Presente:** scripts, runner e suites ausentes. |
+
+O projeto atual não está apto à entrega pelos critérios eliminatórios. Build aprovado não altera esse diagnóstico.
+
+## Plano priorizado de lacunas
+
+Ordem recomendada, respeitando dependências:
+
+1. **P0 — Base executável:** corrigir quatro erros de tipos e cinco de lint; padronizar gerenciador/versão e instalação pelo lock; adicionar comando typecheck. Registrar SPA e preparar bootstrap dos mocks antes de qualquer fetch.
+2. **P0 — Contratos e simulação:** modelos tipados, ETH decimal exato, cliente Axios, QueryClient, handlers MSW, banco persistente e reset; duas contas, catálogo variado, erros e cenários determinísticos. Nenhuma resposta fictícia na UI.
+3. **P0 — Sessão e isolamento:** cadastro/login/me/logout/expiração, guardas, autorização no mock, returnTo, chaves por usuário, cancelamento/limpeza de cache e subscriptions.
+4. **P0 — Descoberta e carrinho funcionais:** URL como estado completo, detalhe por ID/404/estoque, favoritos persistidos com otimismo/rollback, carrinho visitante com merge, cupom e cotação autoritativa.
+5. **P0 — Compra consistente:** revalidar e exigir reconfirmação; criar pedido idempotente; persistir tentativa e recuperar timeout; confirmação exclusivamente por pedido confirmado; snapshot imutável e remoção exata do comprado. Eliminar sucesso inferido da URL.
+6. **P0 — Tempo real na rede:** MSW com binding Socket.IO, nft.updated/order.updated, identidade/versão, deduplicação, sessão e cleanup; reconciliação REST após reconectar; cenário de cotação obsoleta e recuperação do pedido pendente.
+7. **P0 — E2E executável:** instalar/configurar Playwright e começar por compra, sessão/isolamento, idempotência e tempo real com falhas reais dos mocks. Executar no Chromium desktop/mobile, com HTML e traces. Expandir até todos os 12 fluxos da seção 9.
+8. **P1 — Conta e UX completas:** perfil/avatar/senha/carteiras persistentes com validações; corrigir campos do pagamento mobile; retorno de login, ações auxiliares e todos os estados de erro/vazio/background.
+9. **P1 — Acessibilidade e visual:** shimmer e reduced motion, labels/erros/live regions, foco/teclado/diálogos, semântica, idioma e contraste; validar 390/768/1440 e zoom contra referências, registrar baselines das quatro telas.
+10. **P1 — Performance:** corrigir CSS inválido, investigar imagem/bundle/fontes; executar 12 medições Lighthouse no build com mocks e reportar medianas, LCP/CLS/TBT e justificativas.
+11. **P1 — Entrega:** README final, ARCHITECTURE e DECISOES, contratos/políticas/cenários/limitações; publicar versão correspondente ao código e validar URLs diretas/refresh, mocks e socket; fornecer links.
+12. **P2 — Acabamento:** resolver diferenças visuais restantes, melhorar instruções e ergonomia dos controles de cenário e automatizar verificações para evitar regressões.
+
+P2 não deve adiar requisitos obrigatórios: todos os itens ❌ e as validações pendentes precisam de evidência antes da entrega final.
