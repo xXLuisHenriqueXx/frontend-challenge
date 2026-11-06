@@ -1,3 +1,4 @@
+import { NftImage } from "@/components/NftImage";
 import { buttonVariants, Button } from "@/components/ui/button";
 import { DetailSkeleton } from "@/components/Skeleton";
 import { useQuery } from "@tanstack/react-query";
@@ -133,7 +134,9 @@ function RouteComponent() {
                   aria-pressed={imageIndex === index}
                   onClick={() => setImageIndex(index)}
                 >
-                  <img
+                  <NftImage
+                    sizes="100px"
+                    loading="lazy"
                     className="aspect-square w-full object-cover"
                     src={src}
                     alt=""
@@ -143,7 +146,9 @@ function RouteComponent() {
             </div>
 
             <div className="lg:flex-1 lg:rounded-3xl lg:bg-surface-card lg:p-5">
-              <img
+              <NftImage
+                sizes="(min-width: 1024px) 480px, calc(100vw - 48px)"
+                fetchPriority="high"
                 className="w-full rounded-t-[24px] lg:rounded-3xl"
                 src={PRODUCT.images[imageIndex]}
                 alt={PRODUCT.name}
@@ -396,7 +401,7 @@ function RouteComponent() {
             {RELATED.map((item) => (
               <li key={item.name} className="space-y-2">
                 <div className="rounded-xl bg-surface-card p-3">
-                  <img
+                  <NftImage
                     className="aspect-4/5 w-full rounded-lg object-cover"
                     src={item.image}
                     alt={item.name}

@@ -20,10 +20,11 @@ function Products() {
         aria-label="Catálogo de NFTs"
         className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 lg:gap-x-6 lg:gap-y-8"
       >
-        {query.data?.items.map((product) => (
+        {query.data?.items.map((product, index) => (
           <ProductCard
             key={product.id}
             {...product}
+            priority={index < 2}
             price={product.price + " ETH"}
           />
         ))}

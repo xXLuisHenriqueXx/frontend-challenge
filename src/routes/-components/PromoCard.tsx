@@ -1,3 +1,4 @@
+import { NftImage } from "@/components/NftImage";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "react-iconly";
@@ -14,8 +15,10 @@ interface Props {
 function PromoCard({ title, description, image, link }: Props) {
   return (
     <Card className="flex flex-row items-center min-w-[92.5%] h-38 rounded-lg bg-surface-card lg:min-w-0 lg:h-44">
-      <img
-        className="h-full aspect-square rounded-[16px] object-cover"
+      <NftImage
+        className="h-full w-38 shrink-0 aspect-square rounded-[16px] object-cover lg:w-44"
+        sizes="(min-width: 1024px) 176px, 152px"
+        loading="lazy"
         src={image}
         alt=""
       />

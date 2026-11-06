@@ -1,3 +1,4 @@
+import { NftImage } from "@/components/NftImage";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "react-iconly";
 
@@ -31,7 +32,12 @@ function BlogCard({
   return (
     <Link className="block shrink-0 lg:shrink" to={link}>
       <Card className="w-68 max-w-full h-full bg-surface-card rounded-sm lg:w-full">
-        <img className="w-full h-48 object-cover" src={image} alt="" />
+        <NftImage
+          loading="lazy"
+          className="w-full h-48 object-cover"
+          src={image}
+          alt=""
+        />
 
         <div className="space-y-2 p-4">
           <p className="text-xs font-medium text-secondary">

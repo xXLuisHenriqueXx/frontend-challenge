@@ -1,4 +1,4 @@
-# Contratos REST — etapas 2 e 3
+# Contratos REST
 
 Adições da etapa 3: sessão inclui `token`; perfil aceita também `username`, `email`, `ens` e `walletNickname`; PATCH de perfil valida antes de persistir. Carteiras aceitam `role` (primary/secondary), `nickname`, `profileName` e `ens`, com limite de duas e ordem estável. POST `/cart/items` aceita `mode: 'add'` para somar quantidade, mantendo substituição absoluta como padrão para edição.
 
@@ -37,17 +37,19 @@ Erros: `{ code: string, message: string, fields?: Record<string,string> }`. HTTP
 
 `CartLine`: id, nftId, name, tokenId, edition, price, quantity, stock. `Quote`: id, items, subtotal, discount, fee, total, coupon, expiresAt. Cupom padrão `KURIO10`: 10%; taxa fixa simulada de `0.016` ETH para carrinho não vazio. A cotação dura 60 segundos. Servidor revalida os itens e o total antes de criar pedido; conflito exige obter outra cotação e confirmar novamente.
 
-`Order`: id, userId, status, quote (cópia imutável), wallet (cópia), transactionId simulado, createdAt e version. Chaves de idempotência são isoladas por usuário e persistidas. Mesmo corpo canônico `{quoteId,walletId}` e mesma chave recuperam o pedido mesmo após timeout ou mudança posterior de estado; qualquer diferença nesses campos retorna 409. A consulta processa pedidos pendentes após 1,5 s na simulação REST. Estados terminais não são reaplicados; confirmação remove apenas as quantidades do snapshot do carrinho. Tempo real via Socket.IO pertence à etapa seguinte e ainda não foi implementado.
+`Order`: id, userId, status, quote (cópia imutável), wallet (cópia), transactionId simulado, createdAt e version. Chaves de idempotência são isoladas por usuário e persistidas. Corpo canônico inclui `{quoteId,walletId,collector,connectionId}`; mesma chave e corpo recuperam o pedido após timeout ou mudança de estado; diferenças retornam 409. O mock liquida pedidos após 1,5 s via timer/consulta, exceto quando pausado explicitamente. Estados terminais não são reaplicados; confirmação remove somente quantidades compradas. `order.updated` e `nft.updated` são transmitidos pelo Socket.IO; contrato em MOCKS.md.
 
 ## Controle dos mocks
 
 Disponível somente quando MSW está ativo. Estes endpoints também passam pela rede; não existem atalhos de negócio nos hooks.
 
-| Método/caminho        | Entrada              | Efeito                                                                                                                             |
-| --------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| POST `/mock/reset`    | `{scenario?:string}` | Restaura as 36 fixtures, duas contas, estoque, carrinhos, favoritos, carteiras, cupons, cotações, pedidos e chaves; encerra sessão |
-| POST `/mock/scenario` | `{scenario:string}`  | Seleciona cenário sem reset de dados                                                                                               |
-| POST `/mock/expire`   | `{}`                 | Expira a sessão atual                                                                                                              |
+| Método/caminho        | Entrada                                       | Efeito                                                                                                                             |
+| --------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| POST `/mock/reset`    | `{scenario?:string}`                          | Restaura as 36 fixtures, duas contas, estoque, carrinhos, favoritos, carteiras, cupons, cotações, pedidos e chaves; encerra sessão |
+| POST `/mock/scenario` | `{scenario:string}`                           | Seleciona cenário sem reset de dados                                                                                               |
+| POST `/mock/expire`   | `{}`                                          | Expira a sessão atual                                                                                                              |
+| POST `/mock/nft`      | `{id,price?,stock?}`                          | Altera recurso, incrementa versão e transmite evento Socket.IO                                                                     |
+| POST `/mock/timing`   | `{latency?:number,settlementPaused?:boolean}` | Controla latência e liquidação no mock; reset limpa controles voláteis                                                             |
 
 Pode-se abrir `/?reset=1&scenario=success` para reset completo ou usar `?scenario=...` em qualquer rota e recarregar para selecionar cenário persistente. Parâmetros de controle não são filtros do catálogo. Reset limpa dados do mock; para ensaio totalmente novo, usar nova aba e recarregar para descartar caches e tentativas de checkout da aba anterior.
 

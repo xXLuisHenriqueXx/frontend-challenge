@@ -1,6 +1,6 @@
 import PromoCard from "./PromoCard";
 
-import Monkey from "@/assets/monkey.png";
+import Monkey from "@/assets/monkey.webp";
 
 const CARDS_DATA = [
   {

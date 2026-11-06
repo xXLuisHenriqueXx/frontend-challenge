@@ -6,6 +6,9 @@ import { initialize } from "./database";
 export async function startMocks() {
   await initialize();
   const worker = setupWorker(...handlers, ...socketHandlers);
-  await worker.start({ onUnhandledRequest: "bypass" });
+  await worker.start({
+    onUnhandledRequest: "bypass",
+    quiet: import.meta.env.PROD,
+  });
   return worker;
 }

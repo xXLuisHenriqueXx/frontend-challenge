@@ -1,8 +1,9 @@
+import { NftImage } from "@/components/NftImage";
 import { multiply } from "@/api/contracts";
 import type { CartLine } from "@/api/contracts";
 import { Delete } from "react-iconly";
 
-import Monkey from "@/assets/monkey.png";
+import Monkey from "@/assets/monkey.webp";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -29,8 +30,9 @@ function ProductCard({
       className="grid grid-cols-[1fr_auto] items-center gap-2 w-full min-h-25 pr-4 bg-surface-card rounded-xl lg:grid-cols-[minmax(0,1fr)_7rem_9rem_7rem_2.5rem] lg:gap-4 lg:min-h-17.5 lg:rounded-md"
     >
       <div className="flex flex-row items-center gap-2 min-w-0 lg:gap-4">
-        <img
-          className="h-25 aspect-square object-cover lg:h-17.5"
+        <NftImage
+          className="size-25 shrink-0 aspect-square object-cover lg:size-17.5"
+          sizes="(min-width: 1024px) 70px, 100px"
           src={Monkey}
           alt={name}
         />

@@ -2,6 +2,8 @@
 
 O app continua SPA. `src/main.tsx` aguarda o MSW antes de montar a interface. `src/mocks/browser.ts` registra handlers HTTP e WebSocket; ambos consultam o mesmo banco persistente de `database.ts`. `socket.io-client` é importado depois do bootstrap do worker. Não existem chamadas da simulação diretamente a setters React ou ao QueryClient: mutations passam por Axios e eventos passam pelo Socket.IO.
 
+Na etapa final, módulos de aplicação e mocks são carregados em paralelo; a montagem continua aguardando o worker. Em produção, `quiet` suprime somente logs verbosos do MSW. REST, latências, fixtures e eventos são os mesmos usados no desenvolvimento e no Lighthouse. A auditoria usa perfil novo e reset success por medição; não aplica `/mock/timing` nem desativa funcionalidades. Configuração/resultados em `lighthouse.config.mjs` e `reports/lighthouse/final`.
+
 ## Transporte e protocolo
 
 Foi instalado `@mswjs/socket.io-binding` **0.2.0**, compatível com MSW 2.12.7. A API dessa versão é `toSocketIo(connection)`, documentada no README do pacote instalado; o [repositório do binding](https://github.com/mswjs/socket.io-binding) pode mostrar uma API diferente na branch main.

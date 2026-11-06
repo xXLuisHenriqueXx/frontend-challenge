@@ -1,3 +1,4 @@
+import { NftImage } from "@/components/NftImage";
 import { useQuery } from "@tanstack/react-query";
 import { requireSession, orderOptions } from "@/api/client";
 import { multiply } from "@/api/contracts";
@@ -5,7 +6,7 @@ import { useIdentity, RemoteState } from "@/api/hooks";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Clock, Loader2, X, XCircle } from "lucide-react";
 
-import Monkey from "@/assets/monkey.png";
+import Monkey from "@/assets/monkey.webp";
 import ThankYou from "@/assets/thank-you.png";
 import { cn } from "cn";
 import { Separator } from "@/components/ui/separator";
@@ -207,7 +208,7 @@ function RouteComponent() {
                 key={item.tokenId}
                 className="grid grid-cols-[auto_1fr_auto] items-center gap-x-3 py-3 sm:grid-cols-[auto_1fr_5rem_7rem]"
               >
-                <img
+                <NftImage
                   src={item.image}
                   alt={item.name}
                   className={cn(

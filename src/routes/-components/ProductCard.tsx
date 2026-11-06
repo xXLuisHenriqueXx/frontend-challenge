@@ -1,21 +1,25 @@
+import { NftImage } from "@/components/NftImage";
 import { Link } from "@tanstack/react-router";
 
 import { Card } from "@/components/ui/card";
 
-import Monkey from "@/assets/monkey.png";
+import Monkey from "@/assets/monkey.webp";
 
 interface Props {
   id: string;
   name: string;
   price: string;
   oldPrice?: string;
+  priority?: boolean;
 }
 
-function ProductCard({ id, name, price, oldPrice }: Props) {
+function ProductCard({ id, name, price, oldPrice, priority = false }: Props) {
   return (
     <Link to="/product/$productId" params={{ productId: id }}>
       <Card className="hover:-translate-y-1 transition-transform duration-300">
-        <img
+        <NftImage
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
           className="w-full aspect-square rounded-[16px] object-cover"
           src={Monkey}
           alt={name}

@@ -91,6 +91,7 @@ function SavedWalletCard({
   checked: boolean;
   onSelect: () => void;
 }) {
+  const navigate = useNavigate();
   return (
     <Card className="flex flex-row gap-2 items-center justify-between w-full min-h-22.5 px-5 py-4 bg-surface-card rounded-xl">
       <label className="flex flex-1 flex-row gap-5 items-center cursor-pointer">
@@ -114,6 +115,7 @@ function SavedWalletCard({
         variant="ghost"
         size="icon"
         aria-label={`Opções da carteira ${wallet.name}`}
+        onClick={() => void navigate({ to: "/wallets" })}
       >
         <EllipsisVertical />
       </Button>

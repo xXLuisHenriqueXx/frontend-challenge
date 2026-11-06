@@ -1,0 +1,7 @@
+.npm-cache/
+.verification/
+dist/
+reports/
+playwright-report/
+test-results/
+public/mockServiceWorker.js

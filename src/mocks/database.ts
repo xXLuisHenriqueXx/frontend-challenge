@@ -7,7 +7,7 @@ import type {
   User,
   Wallet,
 } from "../api/contracts";
-import Monkey from "../assets/monkey.png";
+import Monkey from "../assets/monkey.webp";
 
 interface Account extends User {
   passwordHash: string;

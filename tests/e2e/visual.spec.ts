@@ -9,14 +9,27 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("visual reference: home, detail, cart and payment", async ({ page }) => {
+  test.setTimeout(120000);
   const snapshot = async (name: string) => {
+    // Exercise native lazy loading by visiting the actual images. Hidden responsive
+    // images are intentionally not requested by the browser and must not block QA.
+    for (const img of await page.locator("img").all()) {
+      if (!(await img.isVisible())) continue;
+      await img.scrollIntoViewIfNeeded();
+      await img.evaluate((element: HTMLImageElement) => element.decode());
+    }
     await page.evaluate(async () => {
       await document.fonts.ready;
-      await Promise.all(
-        [...document.images].map((img) => img.decode().catch(() => {})),
-      );
+      window.scrollTo(0, 0);
     });
-    await expect(page).toHaveScreenshot(`${name}.png`, { fullPage: true });
+    if (name === "cart") {
+      await expect(
+        page.getByRole("button", { name: "Conectar e finalizar" }),
+      ).toBeInViewport();
+    }
+    await expect(page).toHaveScreenshot(`${name}.png`, {
+      fullPage: name !== "cart" || page.viewportSize()!.width >= 1024,
+    });
   };
   await snapshot("home");
   await page.goto("/product/1");

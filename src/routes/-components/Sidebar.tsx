@@ -1,10 +1,11 @@
+import { NftImage } from "@/components/NftImage";
 import { Route } from "../index";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider"; // npx shadcn@latest add slider
 
-import Monkey from "@/assets/monkey.png";
+import Monkey from "@/assets/monkey.webp";
 
 const COLLECTIONS = [
   { name: "Arte digital", count: 33 },
@@ -149,7 +150,9 @@ function Sidebar({ onApplyPrice, mobile = false }: Props) {
           </p>
         </header>
 
-        <img
+        <NftImage
+          loading="lazy"
+          sizes="260px"
           className="aspect-4/5 w-full rounded-[16px] object-cover"
           src={Monkey}
           alt="NFT em destaque"

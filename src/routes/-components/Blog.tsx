@@ -1,6 +1,6 @@
 import { BlogCard } from "./BlogCard";
 
-import Monkey from "@/assets/monkey.png";
+import Monkey from "@/assets/monkey.webp";
 
 const CARDS_DATA = [
   {

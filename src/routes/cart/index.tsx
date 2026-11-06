@@ -1,3 +1,4 @@
+import { NftImage } from "@/components/NftImage";
 import { buttonVariants, Button } from "@/components/ui/button";
 import { SummarySkeleton } from "@/components/Skeleton";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -282,7 +283,7 @@ function RouteComponent() {
             {RELATED.map((item) => (
               <li key={item.name} className="space-y-2">
                 <div className="rounded-xl bg-surface-card p-3">
-                  <img
+                  <NftImage
                     className="aspect-4/5 w-full rounded-lg object-cover"
                     src={item.image}
                     alt={item.name}

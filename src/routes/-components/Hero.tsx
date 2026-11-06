@@ -1,8 +1,9 @@
+import { NftImage } from "@/components/NftImage";
 import { ArrowRight } from "react-iconly";
 
 import { Button } from "@/components/ui/button";
 
-import Monkey from "@/assets/monkey.png";
+import Monkey from "@/assets/monkey.webp";
 
 function Hero() {
   return (
@@ -55,7 +56,9 @@ function Hero() {
           </Button>
         </div>
 
-        <img
+        <NftImage
+          sizes="(min-width: 1024px) 320px, 138px"
+          fetchPriority="high"
           className="w-34.5 h-36.5 rounded-[16px] object-cover lg:size-72 xl:size-80"
           src={Monkey}
           alt="Macaco de óculos escuros e jaqueta verde"
