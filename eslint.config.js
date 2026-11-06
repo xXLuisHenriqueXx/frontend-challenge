@@ -3,7 +3,7 @@
 import { tanstackConfig } from '@tanstack/eslint-config'
 
 export default [
- { ignores: ["public/mockServiceWorker.js", "scripts/**", "dist/**"] },
+ { ignores: ["public/mockServiceWorker.js", "scripts/**", ".npm-cache/**", "playwright-report/**", "test-results/**", "dist/**"] },
   ...tanstackConfig,
   {
     rules: {

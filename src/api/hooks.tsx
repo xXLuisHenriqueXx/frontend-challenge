@@ -110,7 +110,7 @@ export function RemoteState({
     );
   if (query.isFetching)
     return (
-      <span role="status" className="sr-only">
+      <span aria-hidden="true" className="sr-only">
         Atualizando…
       </span>
     );

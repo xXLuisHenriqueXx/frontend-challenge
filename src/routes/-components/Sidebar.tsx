@@ -30,11 +30,12 @@ const MAX_PRICE = 12.3;
 const formatEth = (value: number) => value.toFixed(2).replace(".", ",");
 
 interface Props {
+  mobile?: boolean;
   onApplyPrice?: (range: [number, number]) => void;
 }
 
 // Só aparece no desktop (lg+).
-function Sidebar({ onApplyPrice }: Props) {
+function Sidebar({ onApplyPrice, mobile = false }: Props) {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const collection = search.collection;
@@ -49,7 +50,12 @@ function Sidebar({ onApplyPrice }: Props) {
   ]);
 
   return (
-    <aside className="hidden flex-col gap-6 lg:flex">
+    <aside
+      aria-label="Filtros do catálogo"
+      className={
+        mobile ? "flex flex-col gap-6" : "hidden flex-col gap-6 lg:flex"
+      }
+    >
       <div className="flex flex-col gap-8 rounded-lg bg-surface-card p-4">
         <section className="flex flex-col gap-2">
           <h2 className="font-bold text-font-primary">Coleções</h2>
@@ -61,6 +67,7 @@ function Sidebar({ onApplyPrice }: Props) {
                   className={`flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-xs transition-colors hover:text-primary ${
                     collection === item.name ? "text-primary" : "text-secondary"
                   }`}
+                  aria-pressed={collection === item.name}
                   onClick={() =>
                     setCollection(collection === item.name ? null : item.name)
                   }
@@ -120,6 +127,7 @@ function Sidebar({ onApplyPrice }: Props) {
                   className={`flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-xs transition-colors hover:text-primary ${
                     network === item.name ? "text-primary" : "text-secondary"
                   }`}
+                  aria-pressed={network === item.name}
                   onClick={() =>
                     setNetwork(network === item.name ? null : item.name)
                   }

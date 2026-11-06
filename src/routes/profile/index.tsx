@@ -1,3 +1,4 @@
+import { AccessibleForm } from "@/components/AccessibleForm";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -56,7 +57,8 @@ function ProfileForm({ user }: { user: User }) {
   const errors = errorsFor(save.error);
   return (
     <>
-      <form
+      <AccessibleForm
+        error={save.error}
         onSubmit={(e) => {
           e.preventDefault();
           save.mutate(e.currentTarget);
@@ -107,9 +109,12 @@ function ProfileForm({ user }: { user: User }) {
                   className="size-12 rounded-full object-cover"
                 />
               )}
-              <label className="cursor-pointer rounded-sm bg-primary px-5 py-3 text-sm font-bold text-ink">
+              <label className="avatar-upload cursor-pointer rounded-sm bg-primary px-5 py-3 text-sm font-bold text-ink">
                 Alterar
                 <input
+                  id="avatar"
+                  aria-invalid={!!fileError}
+                  aria-describedby={fileError ? "avatar-error" : undefined}
                   aria-label="Alterar avatar"
                   type="file"
                   accept="image/png,image/jpeg,image/webp"
@@ -139,13 +144,18 @@ function ProfileForm({ user }: { user: User }) {
                 Remover
               </button>
             </div>
-            {fileError && <p role="alert">{fileError}</p>}
+            {fileError && (
+              <p id="avatar-error" role="alert">
+                {fileError}
+              </p>
+            )}
           </div>
         </div>
         <Feedback mutation={save} />
         <SaveButton pending={save.isPending} />
-      </form>
-      <form
+      </AccessibleForm>
+      <AccessibleForm
+        error={password.error}
         className="mt-8 max-w-105 space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
@@ -178,7 +188,7 @@ function ProfileForm({ user }: { user: User }) {
         />
         <Feedback mutation={password} />
         <SaveButton pending={password.isPending}>Salvar senha</SaveButton>
-      </form>
+      </AccessibleForm>
     </>
   );
 }

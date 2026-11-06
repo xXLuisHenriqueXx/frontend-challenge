@@ -23,7 +23,7 @@ function Home() {
     <>
       <Header />
 
-      <main className="mx-auto flex flex-col gap-12 w-full max-w-300 min-h-dvh px-6 pt-10 pb-40 overflow-y-auto lg:px-8 lg:pt-8 lg:pb-16 lg:overflow-visible">
+      <main className="mx-auto flex flex-col gap-12 w-full max-w-300 min-h-dvh px-6 pt-10 pb-12 overflow-y-auto lg:px-8 lg:pt-8 lg:pb-12 lg:overflow-visible">
         <SearchBar />
         <Hero />
 
@@ -43,9 +43,11 @@ function Home() {
 
         <Promos />
         <Blog />
-        <Footer />
-        <BottomBar />
       </main>
+      <div className="mx-auto w-full max-w-300 px-6 pb-40 lg:px-8 lg:pb-16">
+        <Footer />
+      </div>
+      <BottomBar />
     </>
   );
 }

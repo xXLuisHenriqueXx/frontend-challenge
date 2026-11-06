@@ -141,13 +141,18 @@ export function Realtime() {
       });
     return close;
   }, [userId, token]);
-  return notice ? (
+  return (
     <p
       role="status"
       aria-live="polite"
-      className="mx-auto max-w-300 px-6 py-2 text-sm text-font-accent"
+      aria-atomic="true"
+      className={
+        notice
+          ? "mx-auto max-w-300 px-6 py-2 text-sm text-font-accent"
+          : "sr-only"
+      }
     >
       {notice}
     </p>
-  ) : null;
+  );
 }

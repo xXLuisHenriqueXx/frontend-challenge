@@ -1,12 +1,7 @@
+import { AccessibleForm } from "@/components/AccessibleForm";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, createFileRoute, Link } from "@tanstack/react-router";
-import {
-  clearPrivate,
-  message,
-  queryClient,
-  safeReturn,
-  send,
-} from "@/api/client";
+import { clearPrivate, queryClient, safeReturn, send } from "@/api/client";
 
 import { useState } from "react";
 import { Hide } from "react-iconly";
@@ -42,22 +37,32 @@ function RouteComponent() {
 
   return (
     <main className="flex flex-col w-full min-h-dvh items-center justify-center gap-10 pt-20 pb-6 px-7">
-      <h1 className="text-center text-[32px] font-bold">KURIO</h1>
+      <p className="text-center text-[32px] font-bold" aria-hidden="true">
+        KURIO
+      </p>
 
-      <p className="mt-12 text-center text-xl font-bold">Entrar</p>
+      <h1 className="mt-12 text-center text-xl font-bold">Entrar</h1>
 
-      <form
+      <AccessibleForm
+        error={mutation.error}
         className="mt-6 flex flex-1 flex-col w-full"
         onSubmit={(e) => {
           e.preventDefault();
           mutation.mutate(e.currentTarget);
         }}
       >
-        {mutation.isError && <p role="alert">{message(mutation.error)}</p>}
         <FieldGroup className="gap-2">
+          <label htmlFor="auth-email" className="sr-only">
+            E-mail
+          </label>
+          <label htmlFor="auth-password" className="sr-only">
+            Senha
+          </label>
           <Field>
             <Input
+              id="auth-email"
               name="email"
+              autoComplete="email"
               aria-label="E-mail"
               required
               type="email"
@@ -68,7 +73,9 @@ function RouteComponent() {
           <Field>
             <div className="relative">
               <Input
+                id="auth-password"
                 name="password"
+                autoComplete="current-password"
                 aria-label="Senha"
                 required
                 minLength={8}
@@ -89,6 +96,9 @@ function RouteComponent() {
         </FieldGroup>
 
         <Button
+          type="button"
+          disabled
+          title="Recupera??o de senha fora do escopo da demonstra??o"
           className="mt-3 self-end text-sm font-normal"
           variant="link"
           size="link"
@@ -113,7 +123,7 @@ function RouteComponent() {
             className="bg-transparent text-secondary font-medium"
             variant="outline"
           >
-            <img className="size-5" src={Google} alt="Google" />
+            <img className="size-5" src={Google} alt="" />
             Continuar com Google
           </Button>
 
@@ -123,7 +133,7 @@ function RouteComponent() {
             className="bg-transparent text-secondary font-medium"
             variant="outline"
           >
-            <img className="size-5" src={Facebook} alt="Facebook" />
+            <img className="size-5" src={Facebook} alt="" />
             Continuar com Facebook
           </Button>
         </div>
@@ -138,7 +148,7 @@ function RouteComponent() {
             Crie uma conta
           </Link>
         </div>
-      </form>
+      </AccessibleForm>
     </main>
   );
 }

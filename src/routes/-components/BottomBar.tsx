@@ -53,6 +53,12 @@ export function BottomBar() {
                 })}
                 variant="ghost"
                 size="icon"
+                disabled={item.id === "favorites"}
+                title={
+                  item.id === "favorites"
+                    ? "Use Favoritar no detalhe de um NFT"
+                    : undefined
+                }
                 aria-label={item.label}
                 aria-current={isActive ? "page" : undefined}
                 onClick={() => {
@@ -72,7 +78,8 @@ export function BottomBar() {
         className="absolute -top-9 left-1/2 z-10 -translate-x-1/2 rounded-full bg-linear-to-b from-primary/10 to-primary text-foreground"
         size="icon"
         aria-label="Abrir scanner"
-        onClick={() => console.log("Scanner")}
+        disabled
+        title="Scanner fora do escopo da demonstra??o"
       >
         <Scan size={26} />
       </Button>

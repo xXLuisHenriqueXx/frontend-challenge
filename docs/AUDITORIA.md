@@ -1,5 +1,34 @@
 # Auditoria do NFT Marketplace
 
+## Atualização — etapa 4: acessibilidade (06/11/2026)
+
+Este é o diagnóstico vigente da acessibilidade. As seções de etapas anteriores, mantidas abaixo para histórico, não descrevem o estado atual desse checklist.
+
+Resultado final: **18 testes de acessibilidade aprovados**, nas larguras 390, 768 e 1440. Foram 33 análises axe sem violações nos escopos WCAG 2.0/2.1 A/AA e best practices configurados: nove telas por largura, mais diálogo aberto e erro de API. A suíte também validou foco após remover o último NFT, favorito via Space, compra até recibo confirmado e reflow equivalente a 200% nas nove telas. Regressão de rede: 60 verificações REST e 17 de Socket.IO aprovadas. Typecheck, lint e build aprovados; o aviso de CSS inválido foi eliminado e permanece o aviso de chunk acima de 500 kB.
+
+O comando padrão `npm run test:a11y` também foi executado sem servidor externo e terminou com exit 0: build, preview próprio, 18 testes aprovados e encerramento do preview. O executor direto em Node corrige a espera de encerramento observada com npm/cmd aninhados no Windows.
+
+Ferramentas: Node 24.14.0, Playwright 1.65.0, Chromium 158.0.8127.18, axe-core/@axe-core/playwright 4.14.0. Execução Windows/PowerShell, build Vite otimizado com MSW ativo e cenários isolados. Relatório HTML local: `playwright-report/index.html`, com JSON axe anexado; traces e screenshots são retidos quando há falha em `test-results`. Os artefatos gerados são ignorados pelo Git e reproduzíveis pelo comando documentado.
+
+| Requisito                                                            | Status | Evidência e limite                                                                                                                                                                    |
+| -------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Teclado, ordem de foco e foco visível                                | ✅     | Skip link, foco por rota, outline de 2 px na paleta; tabs com setas/Home/End; filtros e favoritos operáveis por Enter/Space; testes Playwright                                        |
+| Dialog/drawer                                                        | ✅     | Filtro abre `Modal` com dialog nativo, rótulo, aria-modal, fundo inerte, trap Tab/Shift+Tab, Escape e retorno ao gatilho; teste nas três larguras                                     |
+| Landmarks, headings e controles sem aninhamento inválido             | ✅     | Main único, rodapé fora de main, h1 por tela, headings de carteiras corrigidos; links estilizados preservam aparência sem envolver botões; axe sem supressão de regras                |
+| Labels e erros de formulário                                         | ✅     | Labels de autenticação, IDs únicos em AccountField, campos do pagamento rotulados; AccessibleForm associa validação/API por aria-describedby e aria-invalid e foca primeiro erro      |
+| Imagens e decoração                                                  | ✅     | NFTs e avatar com alt; logos junto de texto e imagens decorativas com alt vazio; ícones acionáveis têm nome acessível                                                                 |
+| Contraste e seleção além da cor                                      | ✅     | Erro coral ajustado, bordas distinguíveis, seleção com sublinhado/texto/coração/borda dupla; axe nas nove telas; razões calculadas em DECISOES.md                                     |
+| Feedback de mutations e tempo real sem anúncios repetidos de refetch | ✅     | Resumo de erros com alert, sucesso com status, região persistente para eventos, deduplicação existente; refetch não cria múltiplos status                                             |
+| Skeleton, aria-busy e reduced motion                                 | ✅     | Skeletons com estado busy, texto de carregamento e shimmer desativado por preferência; teste da animação no Chromium                                                                  |
+| Reflow até 200% em 390/768/1440                                      | ✅     | Matriz automatizada usa metade da largura CSS como equivalente de layout; testa ausência de overflow nas telas públicas, privadas e no recibo confirmado                              |
+| Título, foco em navegação e SEO básico                               | ✅     | RouteAccessibility atualiza título e foca h1/main após carregamento; idioma pt-BR, descrição e theme-color em index.html                                                              |
+| Auditoria automatizada nas telas principais                          | ✅     | `npm run test:a11y`: axe-core + Playwright, três larguras; relatório HTML e JSON por tela, traces/screenshots de falhas                                                               |
+| Verificação manual por teclado e zoom nativo                         | ⚠️     | Browser retornou “No browser is available” e lista vazia; solicitada conexão ao usuário. Não realizada nesta sessão. Testes automatizados não foram apresentados como inspeção manual |
+
+A suíte cobre início, detalhe, carrinho, login, cadastro, perfil, carteiras, pagamento e recibo confirmado. Inclui auditoria com diálogo aberto e erros de API, além de navegação de teclado e reflow. Ajustes visuais e comandos reproduzíveis estão em `docs/DECISOES.md`. O download do Chromium para testes permitiu executar automação mesmo sem navegador interativo conectado.
+
+Roteiro manual ainda pendente: percorrer cada tela somente com Tab/Shift+Tab/Enter/Space; operar filtros e tabs com as teclas previstas; provocar validação local e erro de API; abrir/fechar filtros por Escape; observar foco após login, navegação e remoção de itens; testar zoom nativo até 200% nas três larguras e conferir conteúdo/controles não encobertos. Leitor de tela e percepção visual humana também não foram avaliados.
+
 ## Atualização — etapa 3 (06/11/2026)
 
 Esta atualização é o diagnóstico vigente para os itens abaixo; as seções anteriores preservadas mais adiante são históricas.

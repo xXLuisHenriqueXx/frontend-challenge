@@ -1,12 +1,7 @@
+import { AccessibleForm } from "@/components/AccessibleForm";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, createFileRoute, Link } from "@tanstack/react-router";
-import {
-  clearPrivate,
-  message,
-  queryClient,
-  safeReturn,
-  send,
-} from "@/api/client";
+import { clearPrivate, queryClient, safeReturn, send } from "@/api/client";
 
 import { useState } from "react";
 import { Hide } from "react-iconly";
@@ -46,24 +41,40 @@ function RouteComponent() {
 
   return (
     <main className="flex flex-col w-full min-h-dvh items-center justify-center gap-10 pt-20 pb-6 px-7">
-      <h1 className="text-center text-[32px] font-bold">KURIO</h1>
-
-      <p className="mt-12 text-center text-xl font-bold">
-        Criar perfil de colecionador
+      <p className="text-center text-[32px] font-bold" aria-hidden="true">
+        KURIO
       </p>
 
-      <form
+      <h1 className="mt-12 text-center text-xl font-bold">
+        Criar perfil de colecionador
+      </h1>
+
+      <AccessibleForm
+        error={mutation.error}
         className="mt-6 flex flex-1 flex-col w-full"
         onSubmit={(e) => {
           e.preventDefault();
           mutation.mutate(e.currentTarget);
         }}
       >
-        {mutation.isError && <p role="alert">{message(mutation.error)}</p>}
         <FieldGroup className="gap-2">
+          <label htmlFor="auth-email" className="sr-only">
+            E-mail
+          </label>
+          <label htmlFor="auth-password" className="sr-only">
+            Senha
+          </label>
+          <label htmlFor="auth-username" className="sr-only">
+            Nome de usuário
+          </label>
+          <label htmlFor="auth-confirmPassword" className="sr-only">
+            Confirmar senha
+          </label>
           <Field>
             <Input
+              id="auth-username"
               name="username"
+              autoComplete="username"
               aria-label="Nome de usuário"
               minLength={3}
               required
@@ -73,7 +84,9 @@ function RouteComponent() {
           </Field>
           <Field>
             <Input
+              id="auth-email"
               name="email"
+              autoComplete="email"
               aria-label="E-mail"
               required
               type="email"
@@ -84,7 +97,9 @@ function RouteComponent() {
           <Field>
             <div className="relative">
               <Input
+                id="auth-password"
                 name="password"
+                autoComplete="current-password"
                 aria-label="Senha"
                 required
                 minLength={8}
@@ -95,7 +110,7 @@ function RouteComponent() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-border-soft hover:text-primary transition-colors duration-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-primary transition-colors duration-300"
                 aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
               >
                 <Hide />
@@ -105,7 +120,9 @@ function RouteComponent() {
           <Field>
             <div className="relative">
               <Input
+                id="auth-confirmPassword"
                 name="confirmPassword"
+                autoComplete="new-password"
                 aria-label="Confirmar senha"
                 required
                 minLength={8}
@@ -144,7 +161,7 @@ function RouteComponent() {
             className="bg-transparent text-secondary font-medium"
             variant="outline"
           >
-            <img className="size-5" src={Google} alt="Google" />
+            <img className="size-5" src={Google} alt="" />
             Continuar com Google
           </Button>
 
@@ -154,7 +171,7 @@ function RouteComponent() {
             className="bg-transparent text-secondary font-medium"
             variant="outline"
           >
-            <img className="size-5" src={Facebook} alt="Facebook" />
+            <img className="size-5" src={Facebook} alt="" />
             Continuar com Facebook
           </Button>
         </div>
@@ -169,7 +186,7 @@ function RouteComponent() {
             Entre
           </Link>
         </div>
-      </form>
+      </AccessibleForm>
     </main>
   );
 }

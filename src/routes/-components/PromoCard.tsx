@@ -1,7 +1,7 @@
+import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "react-iconly";
 
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 interface Props {
@@ -24,10 +24,8 @@ function PromoCard({ title, description, image, link }: Props) {
         <h2 className="text-sm font-semibold lg:text-base">{title}</h2>
         <p className="text-xs text-secondary lg:text-sm">{description}</p>
 
-        <Link to={link}>
-          <Button className="bg-primary">
-            Explorar <ArrowRight />
-          </Button>
+        <Link to={link} className={buttonVariants({ className: "bg-primary" })}>
+          Explorar <ArrowRight />
         </Link>
       </div>
     </Card>

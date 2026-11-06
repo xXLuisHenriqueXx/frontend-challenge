@@ -10,7 +10,7 @@ function Hero() {
       <div className="size-62 bg-linear-to-b from-primary-light/43 to-primary/4 rounded-full absolute -top-7.75 -left-20 animate-pulse"></div>
       <div className="size-62 bg-linear-to-b from-primary-light/43 to-primary/4 rounded-full absolute animate-pulse"></div>
 
-      <div className="relative flex w-full flex-row items-center gap-2 lg:justify-between lg:gap-12">
+      <div className="hero-content relative flex w-full flex-row items-center gap-2 lg:justify-between lg:gap-12">
         <div className="flex flex-col gap-1.5 lg:max-w-xl lg:gap-4">
           <p className="text-xs font-medium lg:text-sm">Bem-vindo à Kurio</p>
 
@@ -30,11 +30,27 @@ function Hero() {
             </span>
           </p>
 
-          <Button className="lg:hidden" variant="link" size="link">
+          <Button
+            onClick={() => {
+              const catalog = document.getElementById("catalog");
+              catalog?.scrollIntoView();
+              catalog?.focus();
+            }}
+            className="lg:hidden"
+            variant="link"
+            size="link"
+          >
             EXPLORAR <ArrowRight />
           </Button>
 
-          <Button className="hidden self-start bg-primary lg:inline-flex">
+          <Button
+            onClick={() => {
+              const catalog = document.getElementById("catalog");
+              catalog?.scrollIntoView();
+              catalog?.focus();
+            }}
+            className="hidden self-start bg-primary lg:inline-flex"
+          >
             EXPLORAR
           </Button>
         </div>

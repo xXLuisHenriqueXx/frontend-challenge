@@ -1,3 +1,4 @@
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 
@@ -77,27 +78,34 @@ export function Footer() {
               >
                 {letter}
               </div>
-              <h3 className="text-[17px] font-bold">{title}</h3>
+              <h2 className="text-[17px] font-bold">{title}</h2>
               <p className="text-sm text-secondary">{text}</p>
             </div>
           ))}
 
           <div className="flex flex-col gap-3 sm:col-span-2 lg:col-span-1 lg:border-l lg:border-primary lg:pl-4">
-            <h3 className="text-lg font-bold">
+            <h2 className="text-lg font-bold">
               Antecipe-se ao próximo lançamento
-            </h3>
+            </h2>
 
             <form
               className="flex h-10 rounded-sm overflow-hidden bg-surface-dark"
               onSubmit={(e) => e.preventDefault()}
             >
               <Input
+                aria-label="E-mail para novidades"
+                autoComplete="email"
                 className="h-10 min-w-0 flex-1 border-0"
                 type="email"
                 placeholder="digite seu e-mail..."
                 required
               />
-              <Button className="h-10 px-2 rounded-none" type="submit">
+              <Button
+                disabled
+                title="Newsletter indisponível nesta demonstração"
+                className="h-10 px-2 rounded-none"
+                type="submit"
+              >
                 Enviar
               </Button>
             </form>
@@ -120,19 +128,36 @@ export function Footer() {
         <section className="mx-auto grid max-w-7xl grid-cols-2 gap-x-4 gap-y-8 px-4 py-8 sm:px-8 lg:grid-cols-4">
           {LINK_GROUPS.map(({ title, links }) => (
             <nav key={title} aria-label={title}>
-              <h4 className="mb-2 text-lg font-bold">{title}</h4>
+              <h2 className="mb-2 text-lg font-bold">{title}</h2>
               <ul className="flex flex-col gap-1 text-sm">
                 {links.map((label) => (
                   <li key={label}>
-                    <Link to="/" search={{ q: "", collection: "", network: "", category: "", sort: "recent", page: 1, min: "0", max: "100" }}>
-                      <Button
-                        className="font-normal text-foreground"
-                        variant="link"
-                        size="link"
+                    {label === "Meu perfil" ? (
+                      <Link to="/profile">{label}</Link>
+                    ) : LINK_GROUPS[2].links.includes(label) ? (
+                      <Link
+                        to="/"
+                        search={{
+                          q: "",
+                          collection: label,
+                          network: "",
+                          category: "",
+                          sort: "recent",
+                          page: 1,
+                          min: "0",
+                          max: "100",
+                        }}
                       >
                         {label}
-                      </Button>
-                    </Link>
+                      </Link>
+                    ) : (
+                      <span
+                        aria-disabled="true"
+                        title="Fora do escopo desta demonstração"
+                      >
+                        {label}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -141,37 +166,44 @@ export function Footer() {
 
           <div className="col-span-2 flex flex-col gap-6 lg:col-span-1">
             <div>
-              <h4 className="mb-3 text-lg font-bold">Redes sociais</h4>
-              <ul className="flex gap-2">
+              <h2 className="mb-3 text-lg font-bold">Redes sociais</h2>
+              <ul className="flex flex-wrap gap-2">
                 {SOCIALS.map(({ label, image }) => (
                   <li key={label}>
-                    <Link to="/" search={{ q: "", collection: "", network: "", category: "", sort: "recent", page: 1, min: "0", max: "100" }}>
-                      <Button
-                        className="size-8 border-primary bg-transparent"
-                        variant="outline"
-                        size="icon"
-                      >
-                        <img className="size-4" src={image} alt={label} />
-                      </Button>
-                    </Link>
+                    <a
+                      href={
+                        label === "Twitter"
+                          ? "https://x.com"
+                          : `https://www.${label.toLowerCase()}.com`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${label} (abre em nova aba)`}
+                      className={buttonVariants({
+                        className: "size-8 border-primary bg-transparent",
+                        variant: "outline",
+                        size: "icon",
+                      })}
+                    >
+                      <img className="size-4" src={image} alt="" />
+                    </a>
                   </li>
                 ))}
               </ul>
             </div>
 
             <div>
-              <h4 className="mb-3 text-lg font-bold">Carteiras compatíveis</h4>
+              <h2 className="mb-3 text-lg font-bold">Carteiras compatíveis</h2>
               <div className="w-fit px-3 py-1.75 rounded-md border border-border-soft bg-surface-dark text-[10px] font-bold text-primary">
                 <p>METAMASK • WALLETCONNECT • COINBASE</p>
               </div>
             </div>
           </div>
         </section>
+        <div className="mt-4 bg-ink text-center text-xs text-secondary">
+          © 2026 Kurio. Propriedade digital para todos.
+        </div>
       </footer>
-
-      <div className="mt-4 text-center text-xs text-footer-muted">
-        © 2026 Kurio. Propriedade digital para todos.
-      </div>
     </>
   );
 }

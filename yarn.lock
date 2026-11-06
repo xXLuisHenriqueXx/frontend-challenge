@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@axe-core/playwright@^4.14.0":
+  version "4.14.0"
+  resolved "https://registry.npmjs.org/@axe-core/playwright/-/playwright-4.14.0.tgz"
+  integrity sha512-SGUhG5PIHd2eMdpgBF2PyQLOhX+qyDR2PT4cmoS4Qk2ak+jX/rrSvst9l0PGv5WTHolKpUMvVmoHpr4cZgf1RQ==
+  dependencies:
+    axe-core "~4.14.0"
+
 "@babel/code-frame@^7.29.7":
   version "7.29.7"
   resolved "https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.29.7.tgz"
@@ -645,6 +652,13 @@
   version "0.156.0"
   resolved "https://registry.npmjs.org/@oxc-project/types/-/types-0.156.0.tgz"
   integrity sha512-1Duyg48TdJNdyhEB8Xn1L36bT9Pv6GUtlKjHxOys8xkaF/rQq3XJE+bAurSK/AgIz5mGFsb77cn9Pb20+WCScw==
+
+"@playwright/test@^1.65.0":
+  version "1.65.0"
+  resolved "https://registry.npmjs.org/@playwright/test/-/test-1.65.0.tgz"
+  integrity sha512-iGURLGuKDLakSEl7Pgfv8h7f+XLT+V861Wfhz0zlEl5nyFuKUopdkFBPKqTllTUp06aOwPuH8iuUEb3yp3MpbQ==
+  dependencies:
+    playwright "1.65.0"
 
 "@rolldown/binding-win32-x64-msvc@1.2.16":
   version "1.2.16"
@@ -1290,6 +1304,11 @@ atomically@^1.7.0:
   version "1.7.0"
   resolved "https://registry.npmjs.org/atomically/-/atomically-1.7.0.tgz"
   integrity sha512-Xcz9l0z7y9yQ9rdDaxlmaI4uJHf/T8g9hOEzJcsEqX2SjCj4J20uK7+ldkDHMbpJDK76wF7xEIgxc/vSlsfw5w==
+
+axe-core@~4.14.0:
+  version "4.14.0"
+  resolved "https://registry.npmjs.org/axe-core/-/axe-core-4.14.0.tgz"
+  integrity sha512-9WTZxEjsZ7b13TH8JPmbV2z8CHbl80/2hm3XPEG4JgNdQLK81IBRXmSxHfMAOkSqQeRxT/0dwNDz2GOm3zzpcQ==
 
 axios@^1.21.0:
   version "1.21.0"
@@ -2904,6 +2923,18 @@ pkg-up@^3.1.0:
   integrity sha512-nDywThFk1i4BQK4twPQ6TA4RT8bDY96yeuCVBWL3ePARCiEKDRSrNGbFIgUJpLp+XeIR65v8ra7WuJOFUBtkMA==
   dependencies:
     find-up "^3.0.0"
+
+"playwright-core@>= 1.0.0", playwright-core@1.65.0:
+  version "1.65.0"
+  resolved "https://registry.npmjs.org/playwright-core/-/playwright-core-1.65.0.tgz"
+  integrity sha512-vNSKgH6YqtN7cdT/L334zo0a+YwkrpicyrHJlWWPIm/Q+Nn2SWInil01oT0mbu96U4GgoRtCYQD9CzJQgju+lA==
+
+playwright@1.65.0:
+  version "1.65.0"
+  resolved "https://registry.npmjs.org/playwright/-/playwright-1.65.0.tgz"
+  integrity sha512-F3AMWcR44qMBt4kq+6Kb6mX7bjGXshktKFOPULd7reED6ZJWevjbNRqysP7q+AATE9kdPEZBibex1BYsvpVoeA==
+  dependencies:
+    playwright-core "1.65.0"
 
 postcss-selector-parser@^7.1.6:
   version "7.1.7"

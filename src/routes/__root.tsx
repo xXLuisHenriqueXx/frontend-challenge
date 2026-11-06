@@ -1,3 +1,4 @@
+import { RouteAccessibility } from "@/components/RouteAccessibility";
 import { Realtime } from "@/api/realtime";
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 
@@ -19,7 +20,7 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <>
-      <Realtime />
+      <RouteAccessibility /><Realtime />
       <Outlet />
       <TanStackDevtools
         config={{

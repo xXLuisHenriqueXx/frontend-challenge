@@ -3,10 +3,33 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/roboto";
 
-.skeleton { position: relative; overflow: hidden; background: var(--surface-raised); }
-.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, #ffffff14, transparent); transform: translateX(-100%); animation: shimmer 1.4s infinite; }
-@keyframes shimmer { to { transform: translateX(100%); } }
-@media (prefers-reduced-motion: reduce) { .skeleton::after { animation: none; transform: none; } .animate-spin { animation: none; } }
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-raised);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, #ffffff14, transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+    transform: none;
+  }
+  .animate-spin {
+    animation: none;
+  }
+}
 
 @theme inline {
   --color-primary: var(--primary);
@@ -31,7 +54,7 @@
   --color-font-coral: var(--font-coral);
   --color-font-secondary: var(--font-secondary);
   --color-font-accent: var(--font-accent);
-  --color-font-primary: var(--font-primary: );
+  --color-font-primary: var(--font-primary);
 
   --color-logo-orange: var(--logo-orange);
   --color-logo-facebook: var(--logo-facebook);
@@ -71,12 +94,12 @@
   --border-soft: #55321f;
   --gray-light: #ededed;
   --success: #00a66c;
-  --error: #ed1b2e;
+  --error: #ff6b77;
 
   --font-coral: #ea6b4f;
   --font-secondary: #cfb28c;
   --font-accent: #e89b55;
-  --font-primary: ##f7f3ec;
+  --font-primary: #f7f3ec;
 
   --logo-orange: #ff641a;
   --logo-facebook: #3b5999;
@@ -90,13 +113,151 @@
 
 @layer base {
   * {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    scrollbar-color: var(--secondary) var(--ink);
   }
   body {
     @apply bg-ink text-foreground;
   }
   html {
     @apply font-mono;
+  }
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--font-accent);
+  outline-offset: 4px;
+}
+:where(input:not([type="radio"]):not([type="checkbox"]), select, textarea) {
+  border-color: #92735c;
+}
+:where(input, select, textarea)[aria-invalid="true"] {
+  border-color: var(--error);
+}
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+img,
+svg {
+  max-width: 100%;
+}
+main,
+section,
+article,
+aside,
+form,
+nav {
+  min-width: 0;
+}
+p {
+  overflow-wrap: anywhere;
+}
+dt,
+dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.group\/input {
+  border-color: #92735c;
+}
+.group\/input input {
+  border-color: transparent;
+}
+[aria-pressed="true"] {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.gallery-thumb[aria-pressed="true"] {
+  border-style: double;
+  border-width: 3px;
+}
+.avatar-upload:focus-within {
+  outline: 2px solid var(--font-accent);
+  outline-offset: 4px;
+}
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1000;
+  transform: translateY(-200%);
+  padding: 0.75rem 1rem;
+  background: var(--ink);
+  color: var(--foreground);
+  border: 2px solid var(--font-accent);
+  border-radius: 0.5rem;
+}
+.skip-link:focus {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+@media (max-width: 30rem) {
+  .zoom-wrap {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 20rem) {
+  .receipt-items li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+  .hero-content {
+    flex-wrap: wrap;
+  }
+  .hero-content > div {
+    flex-basis: 100%;
+  }
+  .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .col-span-2 {
+    grid-column: auto;
+  }
+  .zoom-wrap {
+    flex-wrap: wrap;
+  }
+  .grid-cols-5 button {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  footer form {
+    height: auto;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  footer input {
+    flex-basis: 100%;
+  }
+  footer p {
+    overflow-wrap: anywhere;
+  }
+  button,
+  a {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+  }
+  button {
+    height: auto;
+    min-height: 2.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  .catalog-search > div {
+    flex-wrap: wrap;
+  }
+  .catalog-search .group\/input {
+    flex-basis: 100%;
   }
 }

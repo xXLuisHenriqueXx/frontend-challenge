@@ -62,7 +62,13 @@ function RouteComponent() {
   const { id } = useIdentity();
   const query = useQuery(orderOptions(id, orderId));
   const router = useRouter();
-  if (!query.data) return <RemoteState query={query} />;
+  if (!query.data)
+    return (
+      <main className="mx-auto max-w-300 p-8">
+        <h1>Seu pedido</h1>
+        <RemoteState query={query} />
+      </main>
+    );
   const order = query.data;
   const status: PaymentStatus =
     order.status === "confirmed"
@@ -195,7 +201,7 @@ function RouteComponent() {
             <span className="text-right">{config.subtotalLabel}</span>
           </div>
 
-          <ul className={cn(isFailed && "opacity-60")}>
+          <ul className={cn("receipt-items", isFailed && "opacity-60")}>
             {items.map((item) => (
               <li
                 key={item.tokenId}
@@ -304,8 +310,10 @@ function RouteComponent() {
             ) : (
               <a
                 aria-label="Referência de transação simulada"
-                href={transaction.explorerUrl}
-                onClick={(e) => e.preventDefault()}
+                role="link"
+                aria-disabled="true"
+                tabIndex={-1}
+                title="Referência simulada; não há transação em um explorador real"
                 target="_blank"
                 rel="noreferrer"
                 className="block w-full rounded-sm bg-primary px-4 py-3 text-center text-sm font-bold text-black transition-colors hover:bg-primary-light sm:w-fit"

@@ -1,3 +1,4 @@
+import { AccessibleForm } from "@/components/AccessibleForm";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -20,6 +21,7 @@ function Wallets() {
   const query = useQuery(walletOptions(id));
   return (
     <AccountLayout>
+      <h1 className="sr-only">Suas carteiras</h1>
       <RemoteState query={query} />
       {query.data && (
         <>
@@ -53,16 +55,17 @@ function WalletForm({
   });
   const errors = errorsFor(mutation.error);
   return (
-    <form
+    <AccessibleForm
+      error={mutation.error}
       className="mb-10"
       onSubmit={(e) => {
         e.preventDefault();
         mutation.mutate(e.currentTarget);
       }}
     >
-      <h1 className="mb-2 font-bold">
+      <h2 className="mb-2 font-bold">
         Carteira {role === "primary" ? "principal" : "secundária"}
-      </h1>
+      </h2>
       <p className="mb-8 text-sm text-font-secondary">
         Estas carteiras ficam disponíveis no pagamento e para receber NFTs
         comprados.
@@ -118,6 +121,6 @@ function WalletForm({
       </div>
       <Feedback mutation={mutation} />
       <SaveButton pending={mutation.isPending}>Salvar carteira</SaveButton>
-    </form>
+    </AccessibleForm>
   );
 }

@@ -13,3 +13,6 @@ __unconfig*
 todos.json
 
 .npm-cache/
+
+playwright-report/
+test-results/

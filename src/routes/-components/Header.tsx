@@ -1,12 +1,12 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useIdentity, useCart } from "@/api/hooks";
 import { clearPrivate, queryClient, send } from "@/api/client";
-import { useState } from "react";
+import { parseSearch } from "@/api/contracts";
 import { cn } from "cn";
 import { Buy, Login, Search } from "react-iconly";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 const LINKS = [
   { id: "home", label: "Início" },
@@ -27,7 +27,7 @@ export function Header() {
       await queryClient.invalidateQueries();
     },
   });
-  const [active, setActive] = useState("home");
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
     <header className="sticky top-0 z-40 hidden border-b border-primary/20 bg-background/90 backdrop-blur lg:block">
@@ -38,51 +38,94 @@ export function Header() {
           className="flex h-full items-center justify-center gap-8"
           aria-label="Navegação principal"
         >
-          {LINKS.map((link) => (
-            <button
-              key={link.id}
-              className={cn(
-                "flex h-full items-center border-b-2 border-transparent text-sm transition-colors hover:text-primary",
-                { "border-primary text-primary": active === link.id },
-              )}
-              aria-current={active === link.id ? "page" : undefined}
-              onClick={() => setActive(link.id)}
-            >
-              {link.label}
-            </button>
-          ))}
+          {LINKS.map((link) =>
+            link.id === "creators" || link.id === "learn" ? (
+              <span
+                key={link.id}
+                aria-disabled="true"
+                className="flex h-full items-center text-sm"
+                title="Fora do escopo"
+              >
+                {link.label}
+              </span>
+            ) : (
+              <Link
+                key={link.id}
+                to="/"
+                search={parseSearch({})}
+                hash={link.id === "market" ? "catalog" : undefined}
+                aria-current={
+                  pathname === "/" && link.id === "home" ? "page" : undefined
+                }
+                className={cn(
+                  "flex h-full items-center border-b-2 border-transparent text-sm hover:text-primary",
+                  {
+                    "border-primary text-primary":
+                      pathname === "/" && link.id === "home",
+                  },
+                )}
+              >
+                {link.label}
+              </Link>
+            ),
+          )}
         </nav>
 
         <div className="flex items-center justify-end gap-3">
           {session.data && (
-            <button
-              onClick={() => void navigate({ to: "/profile" })}
-              aria-label="Meu perfil"
+            <Link
+              to="/profile"
+              aria-label={`Meu perfil, ${session.data.user.displayName}`}
             >
               {session.data.user.displayName}
-            </button>
+            </Link>
           )}
           <Button
             className="[&>svg]:size-5.5"
             variant="ghost"
             size="icon"
             aria-label="Buscar"
+            onClick={async () => {
+              await navigate({
+                to: "/",
+                search: {
+                  q: "",
+                  collection: "",
+                  network: "",
+                  category: "",
+                  sort: "recent",
+                  page: 1,
+                  min: "0",
+                  max: "100",
+                },
+              });
+              document
+                .querySelector<HTMLInputElement>(
+                  'input[aria-label="Buscar NFTs"]',
+                )
+                ?.focus();
+            }}
           >
             <Search />
           </Button>
 
-          <Button
-            className="relative [&>svg]:size-5.5"
-            variant="ghost"
-            size="icon"
-            aria-label="Carrinho"
-            onClick={() => void navigate({ to: "/cart" })}
+          <Link
+            to="/cart"
+            className={buttonVariants({
+              variant: "ghost",
+              size: "icon",
+              className: "relative [&>svg]:size-5.5",
+            })}
+            aria-label={`Carrinho, ${cart.data?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0} itens`}
           >
             <Buy />
-            <span className="absolute right-0 top-0 grid size-4 place-items-center rounded-full bg-primary text-[10px] font-bold text-foreground">
+            <span
+              aria-hidden="true"
+              className="absolute right-0 top-0 grid size-4 place-items-center rounded-full bg-primary text-[10px] font-bold text-foreground"
+            >
               {cart.data?.items.reduce((sum, i) => sum + i.quantity, 0) ?? 0}
             </span>
-          </Button>
+          </Link>
 
           <Button
             onClick={() =>

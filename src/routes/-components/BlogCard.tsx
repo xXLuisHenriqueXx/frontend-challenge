@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "react-iconly";
 
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 interface Props {
@@ -31,7 +30,7 @@ function BlogCard({
 
   return (
     <Link className="block shrink-0 lg:shrink" to={link}>
-      <Card className="w-68 h-full bg-surface-card rounded-sm lg:w-full">
+      <Card className="w-68 max-w-full h-full bg-surface-card rounded-sm lg:w-full">
         <img className="w-full h-48 object-cover" src={image} alt="" />
 
         <div className="space-y-2 p-4">
@@ -41,9 +40,9 @@ function BlogCard({
           <h3 className="font-bold text-font-primary">{title}</h3>
           <p className="text-xs font-medium text-secondary">{description}</p>
 
-          <Button className="[&>svg]:size-4" variant="link" size="link">
+          <span className="flex items-center gap-2 text-primary [&>svg]:size-4">
             Ler mais <ArrowRight />
-          </Button>
+          </span>
         </div>
       </Card>
     </Link>

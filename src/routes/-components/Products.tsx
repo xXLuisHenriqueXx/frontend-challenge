@@ -14,7 +14,12 @@ function Products() {
       {query.data?.items.length === 0 && (
         <p role="status">Nenhum NFT encontrado.</p>
       )}
-      <section className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 lg:gap-x-6 lg:gap-y-8">
+      <section
+        id="catalog"
+        tabIndex={-1}
+        aria-label="Catálogo de NFTs"
+        className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 lg:gap-x-6 lg:gap-y-8"
+      >
         {query.data?.items.map((product) => (
           <ProductCard
             key={product.id}

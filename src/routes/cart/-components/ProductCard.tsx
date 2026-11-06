@@ -24,7 +24,10 @@ function ProductCard({
   const { name, tokenId, edition, price, quantity } = item;
 
   return (
-    <Card className="grid grid-cols-[1fr_auto] items-center gap-2 w-full min-h-25 pr-4 bg-surface-card rounded-xl lg:grid-cols-[minmax(0,1fr)_7rem_9rem_7rem_2.5rem] lg:gap-4 lg:min-h-17.5 lg:rounded-md">
+    <Card
+      data-cart-line={item.id}
+      className="grid grid-cols-[1fr_auto] items-center gap-2 w-full min-h-25 pr-4 bg-surface-card rounded-xl lg:grid-cols-[minmax(0,1fr)_7rem_9rem_7rem_2.5rem] lg:gap-4 lg:min-h-17.5 lg:rounded-md"
+    >
       <div className="flex flex-row items-center gap-2 min-w-0 lg:gap-4">
         <img
           className="h-25 aspect-square object-cover lg:h-17.5"
@@ -58,7 +61,7 @@ function ProductCard({
           className="size-6 rounded-full"
           variant="outline"
           size="icon"
-          aria-label="Diminuir quantidade"
+          aria-label={`Diminuir quantidade de ${name}`}
           disabled={quantity <= 1}
           onClick={onDecrease}
         >
@@ -69,7 +72,7 @@ function ProductCard({
           className="size-6 rounded-full"
           variant="outline"
           size="icon"
-          aria-label="Aumentar quantidade"
+          aria-label={`Aumentar quantidade de ${name}`}
           disabled={quantity >= item.stock}
           onClick={onIncrease}
         >
