@@ -14,6 +14,7 @@ import { Route as CartIndexRouteImport } from './routes/cart/index'
 import { Route as LoginIndexRouteImport } from './routes/login/index'
 import { Route as PaymentIndexRouteImport } from './routes/payment/index'
 import { Route as RegisterIndexRouteImport } from './routes/register/index'
+import { Route as PaymentConfirmIndexRouteImport } from './routes/payment/confirm/index'
 import { Route as ProductProductIdIndexRouteImport } from './routes/product/$productId/index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +42,11 @@ const RegisterIndexRoute = RegisterIndexRouteImport.update({
   path: '/register/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaymentConfirmIndexRoute = PaymentConfirmIndexRouteImport.update({
+  id: '/payment/confirm/',
+  path: '/payment/confirm/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductProductIdIndexRoute = ProductProductIdIndexRouteImport.update({
   id: '/product/$productId/',
   path: '/product/$productId/',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/login/': typeof LoginIndexRoute
   '/payment/': typeof PaymentIndexRoute
   '/register/': typeof RegisterIndexRoute
+  '/payment/confirm/': typeof PaymentConfirmIndexRoute
   '/product/$productId/': typeof ProductProductIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginIndexRoute
   '/payment': typeof PaymentIndexRoute
   '/register': typeof RegisterIndexRoute
+  '/payment/confirm': typeof PaymentConfirmIndexRoute
   '/product/$productId': typeof ProductProductIdIndexRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/login/': typeof LoginIndexRoute
   '/payment/': typeof PaymentIndexRoute
   '/register/': typeof RegisterIndexRoute
+  '/payment/confirm/': typeof PaymentConfirmIndexRoute
   '/product/$productId/': typeof ProductProductIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -80,10 +89,17 @@ export interface FileRouteTypes {
     | '/login/'
     | '/payment/'
     | '/register/'
+    | '/payment/confirm/'
     | '/product/$productId/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/cart' | '/login' | '/payment' | '/register' | '/product/$productId'
+    | '/'
+    | '/cart'
+    | '/login'
+    | '/payment'
+    | '/register'
+    | '/payment/confirm'
+    | '/product/$productId'
   id:
     | '__root__'
     | '/'
@@ -91,6 +107,7 @@ export interface FileRouteTypes {
     | '/login/'
     | '/payment/'
     | '/register/'
+    | '/payment/confirm/'
     | '/product/$productId/'
   fileRoutesById: FileRoutesById
 }
@@ -100,6 +117,7 @@ export interface RootRouteChildren {
   LoginIndexRoute: typeof LoginIndexRoute
   PaymentIndexRoute: typeof PaymentIndexRoute
   RegisterIndexRoute: typeof RegisterIndexRoute
+  PaymentConfirmIndexRoute: typeof PaymentConfirmIndexRoute
   ProductProductIdIndexRoute: typeof ProductProductIdIndexRoute
 }
 
@@ -140,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/payment/confirm/': {
+      id: '/payment/confirm/'
+      path: '/payment/confirm'
+      fullPath: '/payment/confirm/'
+      preLoaderRoute: typeof PaymentConfirmIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/product/$productId/': {
       id: '/product/$productId/'
       path: '/product/$productId'
@@ -156,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginIndexRoute: LoginIndexRoute,
   PaymentIndexRoute: PaymentIndexRoute,
   RegisterIndexRoute: RegisterIndexRoute,
+  PaymentConfirmIndexRoute: PaymentConfirmIndexRoute,
   ProductProductIdIndexRoute: ProductProductIdIndexRoute,
 }
 export const routeTree = rootRouteImport
