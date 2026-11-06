@@ -169,7 +169,7 @@ export function Footer() {
         </section>
       </footer>
 
-      <div className="-mt-10 text-center text-xs text-footer-muted">
+      <div className="mt-4 text-center text-xs text-footer-muted">
         © 2026 Kurio. Propriedade digital para todos.
       </div>
     </>
