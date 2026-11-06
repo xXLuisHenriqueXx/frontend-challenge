@@ -21,9 +21,9 @@ const CARDS_DATA = [
 
 function Promos() {
   return (
-    <section className="flex flex-row items-center gap-4 min-w-full overflow-x-auto">
+    <section className="flex flex-row items-center gap-4 min-w-full overflow-x-auto lg:grid lg:grid-cols-2 lg:gap-6 lg:overflow-visible">
       {CARDS_DATA.map((card) => (
-        <PromoCard {...card} />
+        <PromoCard key={card.link} {...card} />
       ))}
     </section>
   );

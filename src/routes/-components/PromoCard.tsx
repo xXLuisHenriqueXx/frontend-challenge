@@ -13,19 +13,19 @@ interface Props {
 
 function PromoCard({ title, description, image, link }: Props) {
   return (
-    <Card className="flex flex-row items-center min-w-[92.5%] h-38 rounded-lg bg-surface-card">
+    <Card className="flex flex-row items-center min-w-[92.5%] h-38 rounded-lg bg-surface-card lg:min-w-0 lg:h-44">
       <img
-        className="h-full aspect-square rounded-[16px]"
+        className="h-full aspect-square rounded-[16px] object-cover"
         src={image}
-        alt="Monkey"
+        alt=""
       />
 
-      <div className="flex flex-col items-end gap-2 text-end p-2">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        <p className="text-xs text-secondary">{description}</p>
+      <div className="flex flex-1 flex-col items-end gap-2 text-end p-2 lg:p-4">
+        <h2 className="text-sm font-semibold lg:text-base">{title}</h2>
+        <p className="text-xs text-secondary lg:text-sm">{description}</p>
 
         <Link to={link}>
-          <Button className="bg-primary" size="sm">
+          <Button className="bg-primary">
             Explorar <ArrowRight />
           </Button>
         </Link>

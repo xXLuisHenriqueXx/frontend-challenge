@@ -17,7 +17,7 @@ export function BottomBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50"
+      className="fixed md:hidden bottom-0 left-0 right-0 z-50"
       aria-label="Navegação principal"
     >
       <div className="relative drop-shadow-[0_-4px_20px_rgba(0,0,0,0.4)]">
@@ -64,7 +64,7 @@ export function BottomBar() {
 
       <Button
         className="absolute -top-9 left-1/2 z-10 -translate-x-1/2 rounded-full bg-linear-to-b from-primary/10 to-primary text-foreground"
-        size="icon-lg"
+        size="icon"
         aria-label="Abrir scanner"
         onClick={() => console.log("Scanner")}
       >

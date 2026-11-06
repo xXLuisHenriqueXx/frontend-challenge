@@ -25,17 +25,18 @@ function BlogCard({
     return new Date(date).toLocaleDateString("pt-BR", {
       day: "numeric",
       month: "long",
+      timeZone: "UTC",
     });
   };
 
   return (
-    <Link to={link}>
-      <Card className="w-68 bg-surface-card rounded-sm">
-        <img className="w-full h-48 object-cover" src={image} alt="Monkey" />
+    <Link className="block shrink-0 lg:shrink" to={link}>
+      <Card className="w-68 h-full bg-surface-card rounded-sm lg:w-full">
+        <img className="w-full h-48 object-cover" src={image} alt="" />
 
         <div className="space-y-2 p-4">
           <p className="text-xs font-medium text-secondary">
-            {formatDate(publishedAt)} | {durationInMinutes} min
+            {formatDate(publishedAt)} | {durationInMinutes} min de leitura
           </p>
           <h3 className="font-bold text-font-primary">{title}</h3>
           <p className="text-xs font-medium text-secondary">{description}</p>
