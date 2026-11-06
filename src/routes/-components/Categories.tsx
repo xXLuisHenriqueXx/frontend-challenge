@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Route } from "../index";
 
 import { Button } from "@/components/ui/button";
 
@@ -18,7 +18,17 @@ const BUTTONS_DATA = [
 ];
 
 function Categories() {
-  const [active, setActive] = useState(BUTTONS_DATA[0].id);
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const active = search.category || "all";
+  const setActive = (category: string) =>
+    void navigate({
+      search: {
+        ...search,
+        category: category === "all" ? "" : category,
+        page: 1,
+      },
+    });
 
   return (
     <nav className="flex w-full flex-row items-center gap-4 overflow-x-auto lg:w-auto lg:gap-6">

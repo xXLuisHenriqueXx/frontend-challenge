@@ -12,7 +12,9 @@
     "preview": "vite preview",
     "lint": "eslint",
     "format": "prettier --write . && eslint --fix",
-    "check": "prettier --check ."
+    "check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test:integration": "node scripts/test-integration.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -27,6 +29,7 @@
     "class-variance-authority": "^0.7.1",
     "cn": "^0.5.2",
     "lucide-react": "^1.69.0",
+    "msw": "^2.12.7",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-iconly": "^2.2.10",
@@ -54,6 +57,11 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "lightningcss"
+    ]
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
     ]
   }
 }

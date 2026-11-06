@@ -1,12 +1,43 @@
-import ReactDOM from 'react-dom/client'
-import { RouterProvider } from '@tanstack/react-router'
-import { getRouter } from './router'
+import ReactDOM from "react-dom/client";
+import { RouterProvider } from "@tanstack/react-router";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { getRouter } from "./router";
+import { queryClient, http } from "./api/client";
 
-const router = getRouter()
-
-const rootElement = document.getElementById('app')!
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
-  root.render(<RouterProvider router={router} />)
+async function bootstrap() {
+  if (typeof window === "undefined") return;
+  if (import.meta.env.VITE_MOCKS !== "false") {
+    const { startMocks } = await import("./mocks/browser");
+    await startMocks();
+  }
+  const router = getRouter();
+  http.interceptors.response.use(
+    (response) => response,
+    async (error: unknown) => {
+      if (
+        isAxiosError(error) &&
+        error.response?.status === 401 &&
+        !error.config?.url?.startsWith("/auth/")
+      ) {
+        await queryClient.cancelQueries({ queryKey: ["private"] });
+        queryClient.removeQueries({ queryKey: ["private"] });
+        queryClient.setQueryData(["session"], null);
+        void router.navigate({
+          to: "/login",
+          search: { returnTo: router.state.location.href },
+        });
+      }
+      return Promise.reject(error);
+    },
+  );
+  ReactDOM.createRoot(document.getElementById("app")!).render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
 }
+void bootstrap().catch((error) => {
+  document.getElementById("app")!.textContent =
+    "Falha ao iniciar: " + String(error);
+});

@@ -1,4 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate, createFileRoute, Link } from "@tanstack/react-router";
+import {
+  clearPrivate,
+  message,
+  queryClient,
+  safeReturn,
+  send,
+} from "@/api/client";
+
 import { useState } from "react";
 import { Hide } from "react-iconly";
 
@@ -11,10 +20,24 @@ import Google from "@/assets/icons/google.svg";
 import Facebook from "@/assets/icons/facebook.svg";
 
 export const Route = createFileRoute("/login/")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    returnTo: safeReturn(s.returnTo),
+  }),
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const navigate = useNavigate();
+  const { returnTo } = Route.useSearch();
+  const mutation = useMutation({
+    mutationFn: async (form: HTMLFormElement) => {
+      const data = Object.fromEntries(new FormData(form));
+      await clearPrivate();
+      await send("/auth/login", data);
+      await queryClient.invalidateQueries();
+      await navigate({ to: returnTo });
+    },
+  });
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -23,15 +46,32 @@ function RouteComponent() {
 
       <p className="mt-12 text-center text-xl font-bold">Entrar</p>
 
-      <form className="mt-6 flex flex-1 flex-col w-full">
+      <form
+        className="mt-6 flex flex-1 flex-col w-full"
+        onSubmit={(e) => {
+          e.preventDefault();
+          mutation.mutate(e.currentTarget);
+        }}
+      >
+        {mutation.isError && <p role="alert">{message(mutation.error)}</p>}
         <FieldGroup className="gap-2">
           <Field>
-            <Input type="email" placeholder="contato@email.com" />
+            <Input
+              name="email"
+              aria-label="E-mail"
+              required
+              type="email"
+              placeholder="contato@email.com"
+            />
           </Field>
 
           <Field>
             <div className="relative">
               <Input
+                name="password"
+                aria-label="Senha"
+                required
+                minLength={8}
                 type={showPassword ? "text" : "password"}
                 placeholder="Senha"
               />
@@ -56,7 +96,7 @@ function RouteComponent() {
           Esqueceu a senha?
         </Button>
 
-        <Button className="mt-10" type="submit">
+        <Button className="mt-10" type="submit" disabled={mutation.isPending}>
           Entrar
         </Button>
 
@@ -68,6 +108,8 @@ function RouteComponent() {
 
         <div className="flex flex-col gap-2">
           <Button
+            type="button"
+            disabled
             className="bg-transparent text-secondary font-medium"
             variant="outline"
           >
@@ -76,6 +118,8 @@ function RouteComponent() {
           </Button>
 
           <Button
+            type="button"
+            disabled
             className="bg-transparent text-secondary font-medium"
             variant="outline"
           >
@@ -88,6 +132,7 @@ function RouteComponent() {
           Novo na Kurio?{" "}
           <Link
             to="/register"
+            search={{ returnTo }}
             className="hover:text-[#e09a59] transition-colors duration-300"
           >
             Crie uma conta

@@ -1,11 +1,23 @@
+import { Route } from "../index";
 // Só aparece no desktop (lg+).
 function SortSelect() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   return (
     <label className="hidden shrink-0 items-center gap-2 text-xs text-secondary lg:flex">
       Ordenar por:
       <select
         className="cursor-pointer rounded-sm bg-transparent py-1 text-font-primary outline-none focus-visible:ring-1 focus-visible:ring-primary"
-        defaultValue="recent"
+        value={search.sort}
+        onChange={(e) =>
+          void navigate({
+            search: {
+              ...search,
+              sort: e.target.value as typeof search.sort,
+              page: 1,
+            },
+          })
+        }
       >
         <option className="bg-surface-card" value="recent">
           Listados recentemente

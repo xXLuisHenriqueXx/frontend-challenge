@@ -7,6 +7,12 @@ import "../styles.css";
 
 export const Route = createRootRoute({
   component: RootComponent,
+  notFoundComponent: () => (
+    <main className="p-8">
+      <h1>Página não encontrada</h1>
+      <a href="/">Voltar ao início</a>
+    </main>
+  ),
 });
 
 function RootComponent() {

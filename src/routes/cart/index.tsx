@@ -1,78 +1,79 @@
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useNavigate, createFileRoute, Link } from "@tanstack/react-router";
+import {
+  quoteOptions,
+  message,
+  catalogOptions,
+  queryClient,
+  send,
+} from "@/api/client";
+import { useCart, useIdentity, RemoteState } from "@/api/hooks";
+import { parseSearch } from "@/api/contracts";
+import type { Quote } from "@/api/contracts";
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+
 import { ChevronLeft } from "react-iconly";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ProductCard, type CartItem } from "./-components/ProductCard";
+import { ProductCard } from "./-components/ProductCard";
 import { Footer } from "@/components/Footer";
-
-import Monkey from "@/assets/monkey.png";
 
 export const Route = createFileRoute("/cart/")({
   component: RouteComponent,
 });
 
-const INITIAL_ITEMS: CartItem[] = [
-  {
-    id: 1,
-    name: "Emerald Ape #042",
-    tokenId: "#0042",
-    edition: "1/50",
-    price: 1.19,
-    quantity: 2,
-  },
-  {
-    id: 2,
-    name: "Violet Nomad #314",
-    tokenId: "#0009",
-    edition: "1/1",
-    price: 1.39,
-    quantity: 6,
-  },
-  {
-    id: 3,
-    name: "Ivory Baron #088",
-    tokenId: "#0552",
-    edition: "1/10",
-    price: 1.79,
-    quantity: 9,
-  },
-];
-
-const RELATED = [
-  { name: "Cosmic Bloom #118", price: "1.29", image: Monkey },
-  { name: "Violet Nomad #314", price: "1.39", image: Monkey },
-  { name: "Ivory Baron #088", price: "1.79", image: Monkey },
-  { name: "Golden Beat #207", price: "0.99", image: Monkey },
-  { name: "Golden Signal #160", price: "0.39", image: Monkey },
-];
-
-const NETWORK_FEE = 0.016;
-const LAUNCH_DISCOUNT = 0;
-
 function RouteComponent() {
-  const [items, setItems] = useState(INITIAL_ITEMS);
-
-  const subtotal = items.reduce((acc, i) => acc + i.price * i.quantity, 0);
-  const total = subtotal - LAUNCH_DISCOUNT + NETWORK_FEE;
-
-  function changeQuantity(id: number, delta: number) {
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i,
-      ),
-    );
+  const related = useQuery(catalogOptions(parseSearch({})));
+  const cart = useCart();
+  const { id } = useIdentity();
+  const navigate = useNavigate();
+  const quote = useQuery(quoteOptions(id));
+  const [coupon, setCoupon] = useState("");
+  const couponMutation = useMutation({
+    mutationFn: (value: string) => send<Quote>("/quote", { coupon: value }),
+    onSuccess: (value) =>
+      queryClient.setQueryData(quoteOptions(id).queryKey, value),
+  });
+  const items = cart.data?.items ?? [];
+  const RELATED = (related.data?.items ?? [])
+    .slice(0, 5)
+    .map((n) => ({ name: n.name, price: n.price, image: n.images[0] }));
+  const subtotal = quote.data?.subtotal;
+  const total = quote.data?.total;
+  function changeQuantity(itemId: string, delta: number) {
+    const item = items.find((i) => i.id === itemId)!;
+    cart.mutation.mutate({ item, quantity: item.quantity + delta });
   }
-
-  function removeItem(id: number) {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+  function removeItem(itemId: string) {
+    cart.mutation.mutate({
+      item: items.find((i) => i.id === itemId),
+      remove: true,
+    });
   }
-
   return (
     <main className="relative flex flex-col gap-3 w-full h-dvh pt-8 lg:h-auto lg:min-h-dvh lg:max-w-300 lg:mx-auto lg:gap-8 lg:px-8 lg:pt-10 lg:pb-16">
+      <RemoteState query={cart} />
+      <RemoteState query={quote} />
+      {(cart.mutation.isError || couponMutation.isError) && (
+        <p role="alert">
+          {message(cart.mutation.error ?? couponMutation.error)}
+        </p>
+      )}
       <header className="flex flex-row items-center px-7 lg:hidden">
-        <Link to="/">
+        <Link
+          to="/"
+          search={{
+            q: "",
+            collection: "",
+            network: "",
+            category: "",
+            sort: "recent",
+            page: 1,
+            min: "0",
+            max: "100",
+          }}
+        >
           <Button
             className="size-8.75 rounded-full"
             variant="outline"
@@ -86,8 +87,22 @@ function RouteComponent() {
       </header>
 
       <nav aria-label="breadcrumb" className="hidden lg:block text-sm">
-        <Link to="/">Início</Link> / <span>Mercado</span> /{" "}
-        <span className="font-bold">Carrinho</span>
+        <Link
+          to="/"
+          search={{
+            q: "",
+            collection: "",
+            network: "",
+            category: "",
+            sort: "recent",
+            page: 1,
+            min: "0",
+            max: "100",
+          }}
+        >
+          Início
+        </Link>{" "}
+        / <span>Mercado</span> / <span className="font-bold">Carrinho</span>
       </nav>
 
       <div className="contents lg:grid lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start lg:gap-24">
@@ -135,35 +150,49 @@ function RouteComponent() {
             <div className="group/input flex flex-row items-center gap-2 pl-4 bg-surface-card border border-border focus-within:border-primary transition-colors duration-300 rounded-full outline-none lg:pl-3 lg:gap-0 lg:rounded-md lg:overflow-hidden">
               <Input
                 id="promo"
+                value={coupon}
+                onChange={(e) => setCoupon(e.target.value)}
                 className="flex-1 border-transparent focus-visible:border-transparent font-bold p-0"
                 placeholder="Digite o código promocional ..."
               />
 
-              <Button className="rounded-full lg:rounded-none">Aplicar</Button>
+              <Button
+                disabled={couponMutation.isPending}
+                onClick={() => {
+                  const removing =
+                    !!quote.data?.coupon &&
+                    (!coupon || coupon === quote.data.coupon);
+                  couponMutation.mutate(removing ? "" : coupon);
+                  if (removing) setCoupon("");
+                }}
+                className="rounded-full lg:rounded-none"
+              >
+                {quote.data?.coupon && (!coupon || coupon === quote.data.coupon)
+                  ? "Remover"
+                  : "Aplicar"}
+              </Button>
             </div>
 
             <div className="flex flex-row justify-between">
               <p className="text-[15px]">Subtotal</p>
-              <span>{subtotal.toFixed(2)} ETH</span>
+              <span>{subtotal} ETH</span>
             </div>
             <div className="flex flex-row justify-between">
               <p className="text-[15px]">Desconto do lançamento</p>
-              <span className="text-[15px]">
-                ( - ) {LAUNCH_DISCOUNT.toFixed(2).padStart(5, "0")}
-              </span>
+              <span className="text-[15px]">( - ) {quote.data?.discount}</span>
             </div>
             <div className="flex flex-row justify-between">
               <p className="text-[15px]">Taxa de rede</p>
 
               <div className="flex flex-col items-end">
-                <span>{NETWORK_FEE} ETH</span>
+                <span>{quote.data?.fee} ETH</span>
                 <span className="text-xs text-font-accent">Taxa estimada</span>
               </div>
             </div>
             <div className="flex flex-row justify-between lg:pt-3">
               <p className="font-bold">Total</p>
               <span className="text-lg font-bold text-font-accent">
-                {total.toFixed(3)} ETH
+                {total} ETH
               </span>
             </div>
           </div>
@@ -171,13 +200,24 @@ function RouteComponent() {
           <div className="flex flex-col gap-3">
             <Button
               className="w-full rounded-full lg:rounded-md"
-              disabled={items.length === 0}
+              disabled={items.length === 0 || cart.mutation.isPending}
+              onClick={() => void navigate({ to: "/payment" })}
             >
               Conectar e finalizar
             </Button>
 
             <Link
               to="/"
+              search={{
+                q: "",
+                collection: "",
+                network: "",
+                category: "",
+                sort: "recent",
+                page: 1,
+                min: "0",
+                max: "100",
+              }}
               className="hidden lg:block text-center text-sm text-font-accent hover:underline"
             >
               Continuar explorando

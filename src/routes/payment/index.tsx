@@ -1,5 +1,17 @@
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useNavigate, createFileRoute, Link } from "@tanstack/react-router";
+import {
+  requireSession,
+  walletOptions,
+  quoteOptions,
+  createOrder,
+  message,
+} from "@/api/client";
+import { multiply } from "@/api/contracts";
+import { useIdentity, RemoteState } from "@/api/hooks";
+import type { Wallet as WalletData } from "@/api/contracts";
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+
 import { ChevronLeft, Wallet } from "react-iconly";
 import { EllipsisVertical } from "lucide-react";
 
@@ -8,36 +20,16 @@ import { Card } from "@/components/ui/card";
 import { Footer } from "@/components/Footer";
 
 export const Route = createFileRoute("/payment/")({
+  beforeLoad: ({ location }) => requireSession(location),
   component: RouteComponent,
 });
 
 /* ----------------------------- dados estáticos ---------------------------- */
 
-const SAVED_WALLETS = [
-  {
-    id: "reserva",
-    name: "Reserva",
-    address: "nova.kurio.eth",
-    network: "Rede Polygon",
-  },
-  {
-    id: "principal",
-    name: "Principal",
-    address: "0xA91F…E82C",
-    network: "Rede principal Ethereum",
-  },
-];
-
 const WALLET_PROVIDERS = [
   { id: "walletconnect", name: "WalletConnect", icon: "W" },
   { id: "metamask", name: "MetaMask", icon: "M" },
   { id: "coinbase", name: "Coinbase Wallet", icon: <Wallet /> },
-];
-
-const NFTS = [
-  { id: "0042", name: "Emerald Ape #042", qty: 2, price: "2.38" },
-  { id: "0314", name: "Violet Nomad #314", qty: 6, price: "8.34" },
-  { id: "0088", name: "Ivory Baron #088", qty: 9, price: "16.11" },
 ];
 
 const BREADCRUMB = ["Início", "Mercado", "Pagamento"];
@@ -72,7 +64,7 @@ function SavedWalletCard({
   checked,
   onSelect,
 }: {
-  wallet: (typeof SAVED_WALLETS)[number];
+  wallet: WalletData;
   checked: boolean;
   onSelect: () => void;
 }) {
@@ -165,13 +157,80 @@ function SummaryRow({
 }
 
 function RouteComponent() {
-  const [savedWallet, setSavedWallet] = useState("reserva");
+  const { id } = useIdentity();
+  const navigate = useNavigate();
+  const wallets = useQuery(walletOptions(id));
+  const quote = useQuery(quoteOptions(id));
+  const SAVED_WALLETS = wallets.data ?? [];
+  const NFTS =
+    quote.data?.items.map((i) => ({
+      id: i.tokenId,
+      name: i.name,
+      qty: i.quantity,
+      price: multiply(i.price, i.quantity),
+    })) ?? [];
+  const [savedWallet, setSavedWallet] = useState("");
+  const walletId = savedWallet || SAVED_WALLETS[0]?.id || "";
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const storageKey = "kurio.attempt." + id;
+      const previous = sessionStorage.getItem(storageKey);
+      let attempt: { key: string; quoteId: string; walletId: string };
+      if (previous) attempt = JSON.parse(previous) as typeof attempt;
+      else {
+        if (!quote.data) throw new Error("Aguarde a cota??o");
+        attempt = {
+          key: crypto.randomUUID(),
+          quoteId: quote.data.id,
+          walletId,
+        };
+        sessionStorage.setItem(storageKey, JSON.stringify(attempt));
+      }
+      try {
+        const order = await createOrder(
+          { quoteId: attempt.quoteId, walletId: attempt.walletId },
+          attempt.key,
+        );
+        sessionStorage.removeItem(storageKey);
+        await navigate({
+          to: "/payment/confirm",
+          search: { orderId: order.id },
+        });
+      } catch (error) {
+        const { isAxiosError } = await import("axios");
+        if (
+          isAxiosError(error) &&
+          error.response &&
+          error.response.status !== 401
+        ) {
+          sessionStorage.removeItem(storageKey);
+          await quote.refetch();
+        }
+        throw error;
+      }
+    },
+  });
   const [provider, setProvider] = useState("coinbase");
 
   return (
     <main className="mx-auto flex flex-col w-full max-w-300 min-h-dvh py-8 px-7 lg:min-h-0 lg:px-6 lg:py-10">
+      <RemoteState query={wallets} />
+      <RemoteState query={quote} />
+      {mutation.isError && <p role="alert">{message(mutation.error)}</p>}
       <header className="flex flex-row items-center mb-4 lg:hidden">
-        <Link to="/">
+        <Link
+          to="/"
+          search={{
+            q: "",
+            collection: "",
+            network: "",
+            category: "",
+            sort: "recent",
+            page: 1,
+            min: "0",
+            max: "100",
+          }}
+        >
           <Button
             className="size-8.75 rounded-full"
             variant="outline"
@@ -308,7 +367,7 @@ function RouteComponent() {
                   <SavedWalletCard
                     key={wallet.id}
                     wallet={wallet}
-                    checked={savedWallet === wallet.id}
+                    checked={walletId === wallet.id}
                     onSelect={() => setSavedWallet(wallet.id)}
                   />
                 ))}
@@ -356,11 +415,17 @@ function RouteComponent() {
               </p>
 
               <div className="mt-3 space-y-2">
-                <SummaryRow label="Subtotal" value="26.83 ETH" />
-                <SummaryRow label="Desconto do lançamento" value="(-) 00.00" />
+                <SummaryRow
+                  label="Subtotal"
+                  value={(quote.data?.subtotal ?? "?") + " ETH"}
+                />
+                <SummaryRow
+                  label="Desconto do lançamento"
+                  value={"(-) " + (quote.data?.discount ?? "?")}
+                />
                 <SummaryRow
                   label="Taxa de rede"
-                  value="0.016 ETH"
+                  value={(quote.data?.fee ?? "?") + " ETH"}
                   hint="Taxa estimada"
                 />
               </div>
@@ -382,13 +447,21 @@ function RouteComponent() {
             <p className="w-full font-bold text-end lg:flex lg:justify-between lg:border-t lg:border-border lg:pt-4 lg:text-start">
               Total:
               <span className="ml-7 text-lg font-bold text-font-accent lg:ml-0">
-                <span className="lg:hidden">8.936 ETH</span>
-                <span className="hidden lg:inline">26.846 ETH</span>
+                <span className="lg:hidden">{quote.data?.total} ETH</span>
+                <span className="hidden lg:inline">
+                  {quote.data?.total} ETH
+                </span>
               </span>
             </p>
           </div>
 
-          <Button className="w-full rounded-full lg:rounded-md lg:h-11">
+          <Button
+            disabled={
+              mutation.isPending || !walletId || !quote.data?.items.length
+            }
+            onClick={() => mutation.mutate()}
+            className="w-full rounded-full lg:rounded-md lg:h-11"
+          >
             Confirmar compra
           </Button>
         </aside>

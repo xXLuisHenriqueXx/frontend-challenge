@@ -1,3 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
+import { requireSession, orderOptions } from "@/api/client";
+import { multiply } from "@/api/contracts";
+import { useIdentity, RemoteState } from "@/api/hooks";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { Clock, Loader2, X, XCircle } from "lucide-react";
 
@@ -8,56 +12,14 @@ import { Separator } from "@/components/ui/separator";
 
 type PaymentStatus = "success" | "pending" | "failed";
 
-/**
- * O estado vem pela URL: /payment/confirm/?status=pending
- * Em produção, troque pelo status real retornado pela transação.
- */
+/** O status vem exclusivamente do pedido consultado na API simulada. */
 export const Route = createFileRoute("/payment/confirm/")({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { status: PaymentStatus } => ({
-    status:
-      search.status === "pending" || search.status === "failed"
-        ? search.status
-        : "success",
+  beforeLoad: ({ location }) => requireSession(location),
+  validateSearch: (s: Record<string, unknown>) => ({
+    orderId: String(s.orderId ?? ""),
   }),
   component: RouteComponent,
 });
-
-const transaction = {
-  id: "0xA91F…E82C",
-  date: "29 Jul, 2026",
-  wallet: "MetaMask",
-  networkFee: 0.016,
-  explorerUrl: "https://etherscan.io/tx/0xA91F",
-};
-
-const items = [
-  {
-    name: "Emerald Ape #042",
-    tokenId: "#0042",
-    quantity: 2,
-    subtotal: 2.38,
-    image: Monkey,
-  },
-  {
-    name: "Violet Nomad #314",
-    tokenId: "#0314",
-    quantity: 6,
-    subtotal: 8.34,
-    image: Monkey,
-  },
-  {
-    name: "Ivory Baron #088",
-    tokenId: "#0088",
-    quantity: 9,
-    subtotal: 16.11,
-    image: Monkey,
-  },
-];
-
-const total =
-  items.reduce((acc, i) => acc + i.subtotal, 0) + transaction.networkFee;
 
 /* Motivo exibido no estado "recusado" (troque pelo retorno real da carteira/rede) */
 const failureReason = "Transação rejeitada na carteira";
@@ -96,8 +58,31 @@ const statusConfig = {
 } satisfies Record<PaymentStatus, Record<string, string>>;
 
 function RouteComponent() {
-  const { status } = Route.useSearch();
+  const { orderId } = Route.useSearch();
+  const { id } = useIdentity();
+  const query = useQuery(orderOptions(id, orderId));
   const router = useRouter();
+  if (!query.data) return <RemoteState query={query} />;
+  const order = query.data;
+  const status: PaymentStatus =
+    order.status === "confirmed"
+      ? "success"
+      : order.status === "refused"
+        ? "failed"
+        : "pending";
+  const transaction = {
+    id: order.transactionId,
+    date: new Date(order.createdAt).toLocaleString(),
+    wallet: order.wallet.name,
+    networkFee: order.quote.fee,
+    explorerUrl: "#",
+  };
+  const items = order.quote.items.map((i) => ({
+    ...i,
+    image: Monkey,
+    subtotal: multiply(i.price, i.quantity),
+  }));
+  const total = order.quote.total;
   const config = statusConfig[status];
 
   const isPending = status === "pending";
@@ -114,6 +99,16 @@ function RouteComponent() {
         <Link
           className="absolute right-4 top-4 text-primary transition-colors duration-300 hover:text-error"
           to="/"
+          search={{
+            q: "",
+            collection: "",
+            network: "",
+            category: "",
+            sort: "recent",
+            page: 1,
+            min: "0",
+            max: "100",
+          }}
           aria-label="Fechar"
         >
           <X />
@@ -233,7 +228,7 @@ function RouteComponent() {
                         : "text-font-accent",
                     )}
                   >
-                    {item.subtotal.toFixed(2)} ETH
+                    {item.subtotal} ETH
                   </span>
                 </div>
               </li>
@@ -246,7 +241,7 @@ function RouteComponent() {
                 {isPending ? "Taxa de rede (estimada)" : "Taxa de rede"}
               </span>
               <span className={cn(isFailed && "line-through")}>
-                {transaction.networkFee.toFixed(3)} ETH
+                {transaction.networkFee} ETH
               </span>
             </div>
             <div className="flex justify-between font-bold">
@@ -258,7 +253,7 @@ function RouteComponent() {
                     : "text-font-accent",
                 )}
               >
-                {total.toFixed(3)} ETH
+                {total} ETH
               </span>
             </div>
           </div>
@@ -283,6 +278,16 @@ function RouteComponent() {
                 </button>
                 <Link
                   to="/"
+                  search={{
+                    q: "",
+                    collection: "",
+                    network: "",
+                    category: "",
+                    sort: "recent",
+                    page: 1,
+                    min: "0",
+                    max: "100",
+                  }}
                   className="block w-full rounded-sm border border-primary px-4 py-3 text-center text-sm font-bold text-primary transition-colors hover:bg-primary/10 sm:w-fit"
                 >
                   Voltar à loja
@@ -290,7 +295,9 @@ function RouteComponent() {
               </>
             ) : (
               <a
+                aria-label="Referência de transação simulada"
                 href={transaction.explorerUrl}
+                onClick={(e) => e.preventDefault()}
                 target="_blank"
                 rel="noreferrer"
                 className="block w-full rounded-sm bg-primary px-4 py-3 text-center text-sm font-bold text-black transition-colors hover:bg-primary-light sm:w-fit"

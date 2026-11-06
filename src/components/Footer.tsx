@@ -124,7 +124,7 @@ export function Footer() {
               <ul className="flex flex-col gap-1 text-sm">
                 {links.map((label) => (
                   <li key={label}>
-                    <Link to="/">
+                    <Link to="/" search={{ q: "", collection: "", network: "", category: "", sort: "recent", page: 1, min: "0", max: "100" }}>
                       <Button
                         className="font-normal text-foreground"
                         variant="link"
@@ -145,7 +145,7 @@ export function Footer() {
               <ul className="flex gap-2">
                 {SOCIALS.map(({ label, image }) => (
                   <li key={label}>
-                    <Link to="/">
+                    <Link to="/" search={{ q: "", collection: "", network: "", category: "", sort: "recent", page: 1, min: "0", max: "100" }}>
                       <Button
                         className="size-8 border-primary bg-transparent"
                         variant="outline"

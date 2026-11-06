@@ -1,17 +1,12 @@
+import { multiply } from "@/api/contracts";
+import type { CartLine } from "@/api/contracts";
 import { Delete } from "react-iconly";
 
 import Monkey from "@/assets/monkey.png";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-export type CartItem = {
-  id: number;
-  name: string;
-  tokenId: string;
-  edition: string;
-  price: number;
-  quantity: number;
-};
+export type CartItem = CartLine;
 
 type ProductCardProps = {
   item: CartItem;
@@ -49,13 +44,13 @@ function ProductCard({
           </div>
 
           <p className="text-lg font-bold text-font-accent lg:hidden">
-            {price.toFixed(2)} ETH
+            {price} ETH
           </p>
         </div>
       </div>
 
       <span className="hidden lg:block font-bold text-font-accent">
-        {price.toFixed(2)} ETH
+        {price} ETH
       </span>
 
       <div className="flex flex-row items-center gap-3">
@@ -75,6 +70,7 @@ function ProductCard({
           variant="outline"
           size="icon"
           aria-label="Aumentar quantidade"
+          disabled={quantity >= item.stock}
           onClick={onIncrease}
         >
           +
@@ -82,7 +78,7 @@ function ProductCard({
       </div>
 
       <span className="hidden lg:block font-bold text-font-accent tabular-nums">
-        {(price * quantity).toFixed(2)} ETH
+        {multiply(price, quantity)} ETH
       </span>
 
       <Button

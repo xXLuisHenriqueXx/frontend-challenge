@@ -1,3 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
+import { nftOptions, message, catalogOptions } from "@/api/client";
+import { multiply, parseSearch } from "@/api/contracts";
+import { useCart, useFavorites, RemoteState } from "@/api/hooks";
 import { useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { Buy, ChevronLeft, Heart, Star } from "react-iconly";
@@ -12,51 +16,80 @@ export const Route = createFileRoute("/product/$productId/")({
   component: RouteComponent,
 });
 
-const PRODUCT = {
-  name: "Emerald Ape #042",
-  price: 1.19,
-  rating: 4.8,
-  reviews: 19,
-  description:
-    "Um colecionável digital 1/50 finalizado à mão da coleção Kurio Editions, verificado na Ethereum.",
-  editions: ["1/1", "1/10", "1/50", "ABERTA"],
-  activeEdition: "1/50",
-  tokenId: "#0042",
-  collection: "Kurio Apes",
-  attributes: "Óculos, Esmeralda, Raro",
-  images: [Monkey, Monkey, Monkey, Monkey],
-};
-
-const RELATED = [
-  { name: "Cosmic Bloom #118", price: "1.29", image: Monkey },
-  { name: "Violet Nomad #314", price: "1.39", image: Monkey },
-  { name: "Ivory Baron #088", price: "1.79", image: Monkey },
-  { name: "Golden Beat #207", price: "0.99", image: Monkey },
-  { name: "Golden Signal #160", price: "0.39", image: Monkey },
-];
-
 function RouteComponent() {
   const { productId } = useParams({ strict: false });
-  console.log(productId);
+  const related = useQuery(catalogOptions(parseSearch({})));
+  const query = useQuery(nftOptions(productId ?? ""));
+  const cart = useCart();
+  const favorite = useFavorites(productId ?? "");
 
   const [quantity, setQuantity] = useState(1);
   const [tab, setTab] = useState<"details" | "reviews">("details");
 
-  const total = (PRODUCT.price * quantity).toFixed(2);
+  const PRODUCT = query.data;
+  if (!PRODUCT) return <RemoteState query={query} />;
+  const RELATED = (related.data?.items ?? [])
+    .filter((n) => n.id !== PRODUCT.id)
+    .slice(0, 5)
+    .map((n) => ({ name: n.name, price: n.price, image: n.images[0] }));
+  const total = multiply(PRODUCT.price, quantity);
+  const add = () =>
+    cart.mutation.mutate({
+      nftId: PRODUCT.id,
+      edition: PRODUCT.activeEdition,
+      quantity,
+    });
 
   return (
     <main className="w-full min-h-dvh pt-6 lg:mx-auto lg:max-w-300 lg:px-6 lg:pt-8 lg:pb-16">
+      <RemoteState query={query} />
+      {cart.mutation.isError && (
+        <p role="alert">{message(cart.mutation.error)}</p>
+      )}
+      {cart.mutation.isSuccess && (
+        <p role="status">NFT adicionado ao carrinho.</p>
+      )}
+      {favorite.mutation.isError && (
+        <p role="alert">{message(favorite.mutation.error)}</p>
+      )}
       <nav
         aria-label="Breadcrumb"
         className="mb-4 hidden text-sm font-bold lg:block"
       >
-        <Link to="/">Início</Link> / <span>Mercado</span>
+        <Link
+          to="/"
+          search={{
+            q: "",
+            collection: "",
+            network: "",
+            category: "",
+            sort: "recent",
+            page: 1,
+            min: "0",
+            max: "100",
+          }}
+        >
+          Início
+        </Link>{" "}
+        / <span>Mercado</span>
       </nav>
 
       <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-10">
         <section className="flex flex-col gap-2 px-6 lg:flex-row lg:gap-4 lg:px-0">
           <header className="flex w-full flex-row items-center justify-between lg:hidden">
-            <Link to="/">
+            <Link
+              to="/"
+              search={{
+                q: "",
+                collection: "",
+                network: "",
+                category: "",
+                sort: "recent",
+                page: 1,
+                min: "0",
+                max: "100",
+              }}
+            >
               <Button
                 className="size-8.75 rounded-full"
                 variant="outline"
@@ -72,6 +105,9 @@ function RouteComponent() {
               variant="outline"
               size="icon"
               aria-label="Favoritar"
+              aria-pressed={favorite.selected}
+              onClick={favorite.toggle}
+              disabled={favorite.mutation.isPending}
             >
               <Heart />
             </Button>
@@ -111,7 +147,7 @@ function RouteComponent() {
                   {PRODUCT.name}
                 </h1>
                 <p className="hidden text-2xl font-bold text-font-accent lg:block">
-                  {PRODUCT.price.toFixed(2)} ETH
+                  {PRODUCT.price} ETH
                 </p>
               </div>
 
@@ -207,7 +243,10 @@ function RouteComponent() {
                   className="size-6 rounded-full lg:size-9"
                   size="icon"
                   aria-label="Aumentar quantidade"
-                  onClick={() => setQuantity((q) => q + 1)}
+                  disabled={quantity >= PRODUCT.stock}
+                  onClick={() =>
+                    setQuantity((q) => Math.min(PRODUCT.stock, q + 1))
+                  }
                 >
                   +
                 </Button>
@@ -219,7 +258,11 @@ function RouteComponent() {
             </div>
 
             <div className="flex flex-row items-center gap-3">
-              <Button className="flex-1 rounded-full lg:flex-none lg:px-10">
+              <Button
+                disabled={cart.mutation.isPending || PRODUCT.stock === 0}
+                onClick={add}
+                className="flex-1 rounded-full lg:flex-none lg:px-10"
+              >
                 <span className="lg:hidden">Comprar NFT</span>
                 <span className="hidden lg:inline">Comprar</span>
               </Button>
@@ -229,11 +272,16 @@ function RouteComponent() {
                 variant="outline"
                 size="icon"
                 aria-label="Adicionar ao carrinho"
+                onClick={add}
+                disabled={cart.mutation.isPending || PRODUCT.stock === 0}
               >
                 <Buy filled />
               </Button>
 
               <Button
+                aria-pressed={favorite.selected}
+                onClick={favorite.toggle}
+                disabled={favorite.mutation.isPending}
                 className="hidden rounded-full lg:inline-flex"
                 variant="outline"
               >

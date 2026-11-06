@@ -1,3 +1,4 @@
+import { parseSearch } from "@/api/contracts";
 import { createFileRoute } from "@tanstack/react-router";
 import { SearchBar } from "./-components/SearchBar";
 import { Header } from "./-components/Header";
@@ -12,7 +13,10 @@ import { Promos } from "./-components/Promos";
 import { Blog } from "./-components/Blog";
 import { Footer } from "@/components/Footer";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/")({
+  validateSearch: parseSearch,
+  component: Home,
+});
 
 function Home() {
   return (

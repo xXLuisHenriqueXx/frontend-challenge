@@ -1,3 +1,7 @@
+import { useNavigate } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { useIdentity, useCart } from "@/api/hooks";
+import { clearPrivate, queryClient, send } from "@/api/client";
 import { useState } from "react";
 import { cn } from "cn";
 import { Buy, Login, Search } from "react-iconly";
@@ -13,6 +17,16 @@ const LINKS = [
 
 // Só aparece no desktop (lg+). No mobile quem navega é a BottomBar.
 export function Header() {
+  const navigate = useNavigate();
+  const session = useIdentity();
+  const cart = useCart();
+  const logout = useMutation({
+    mutationFn: async () => {
+      await send("/auth/logout");
+      await clearPrivate();
+      await queryClient.invalidateQueries();
+    },
+  });
   const [active, setActive] = useState("home");
 
   return (
@@ -54,15 +68,27 @@ export function Header() {
             variant="ghost"
             size="icon"
             aria-label="Carrinho"
+            onClick={() => void navigate({ to: "/cart" })}
           >
             <Buy />
             <span className="absolute right-0 top-0 grid size-4 place-items-center rounded-full bg-primary text-[10px] font-bold text-foreground">
-              6
+              {cart.data?.items.reduce((sum, i) => sum + i.quantity, 0) ?? 0}
             </span>
           </Button>
 
-          <Button className="bg-primary" size="sm">
-            <Login /> Entrar
+          <Button
+            onClick={() =>
+              session.data
+                ? logout.mutate()
+                : void navigate({
+                    to: "/login",
+                    search: { returnTo: location.pathname + location.search },
+                  })
+            }
+            className="bg-primary"
+            size="sm"
+          >
+            <Login /> {session.data ? "Sair" : "Entrar"}
           </Button>
         </div>
       </div>

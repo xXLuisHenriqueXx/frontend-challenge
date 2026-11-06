@@ -1,5 +1,6 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
-import { cva, type VariantProps } from "class-variance-authority";
+import { cva  } from "class-variance-authority";
+import type {VariantProps} from "class-variance-authority";
 import { cn } from "cn";
 
 const buttonVariants = cva(
@@ -21,6 +22,8 @@ const buttonVariants = cva(
         default: "h-15 gap-1.5 px-6",
         link: "w-fit h-fit gap-1.5 p-0",
         icon: "size-15",
+ sm: "h-15 gap-1.5 px-6",
+ "icon-sm": "size-15",
       },
     },
     defaultVariants: {

@@ -1,3 +1,4 @@
+import { Route } from "../index";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -34,9 +35,18 @@ interface Props {
 
 // Só aparece no desktop (lg+).
 function Sidebar({ onApplyPrice }: Props) {
-  const [collection, setCollection] = useState<string | null>(null);
-  const [network, setNetwork] = useState<string | null>(null);
-  const [range, setRange] = useState<number[]>([MIN_PRICE, MAX_PRICE]);
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const collection = search.collection;
+  const network = search.network;
+  const setCollection = (value: string | null) =>
+    void navigate({ search: { ...search, collection: value ?? "", page: 1 } });
+  const setNetwork = (value: string | null) =>
+    void navigate({ search: { ...search, network: value ?? "", page: 1 } });
+  const [range, setRange] = useState<number[]>([
+    Number(search.min),
+    Number(search.max),
+  ]);
 
   return (
     <aside className="hidden flex-col gap-6 lg:flex">
@@ -71,7 +81,9 @@ function Sidebar({ onApplyPrice }: Props) {
             max={MAX_PRICE}
             step={0.01}
             value={range}
-            onValueChange={setRange}
+            onValueChange={(value) =>
+              setRange(typeof value === "number" ? [value, value] : [...value])
+            }
             aria-label="Faixa de preço em ETH"
           />
 
@@ -82,7 +94,17 @@ function Sidebar({ onApplyPrice }: Props) {
           <Button
             className="self-start bg-primary"
             size="sm"
-            onClick={() => onApplyPrice?.([range[0], range[1]])}
+            onClick={() => {
+              onApplyPrice?.([range[0], range[1]]);
+              void navigate({
+                search: {
+                  ...search,
+                  min: String(range[0]),
+                  max: String(range[1]),
+                  page: 1,
+                },
+              });
+            }}
           >
             Aplicar
           </Button>

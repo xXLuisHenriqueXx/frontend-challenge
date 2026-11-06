@@ -1,12 +1,18 @@
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { catalogOptions } from "@/api/client";
+import { Route } from "../index";
 import { ArrowRight } from "react-iconly";
 
 import { Button } from "@/components/ui/button";
 
-const PAGES = [1, 2, 3, 4];
-
 function Pagination() {
-  const [page, setPage] = useState(1);
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const { data } = useQuery(catalogOptions(search));
+  const PAGES = Array.from({ length: data?.pages ?? 0 }, (_, i) => i + 1);
+  const page = search.page;
+  const setPage = (value: number) =>
+    void navigate({ search: { ...search, page: value } });
 
   return (
     <nav
@@ -31,9 +37,7 @@ function Pagination() {
         variant="ghost"
         size="icon"
         aria-label="Próxima página"
-        onClick={() =>
-          setPage((current) => Math.min(current + 1, PAGES.length))
-        }
+        onClick={() => setPage(Math.min(page + 1, PAGES.length))}
       >
         <ArrowRight />
       </Button>
