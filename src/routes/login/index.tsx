@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Separator } from "@/components/ui/separator";
 
+import Google from "@/assets/icons/google.svg";
+import Facebook from "@/assets/icons/facebook.svg";
+
 export const Route = createFileRoute("/login/")({
   component: RouteComponent,
 });
@@ -53,7 +56,9 @@ function RouteComponent() {
           Esqueceu a senha?
         </Button>
 
-        <Button type="submit">Entrar</Button>
+        <Button className="mt-10" type="submit">
+          Entrar
+        </Button>
 
         <div className="my-10 flex items-center gap-2">
           <Separator className="flex-1" />
@@ -63,18 +68,18 @@ function RouteComponent() {
 
         <div className="flex flex-col gap-2">
           <Button
-            className="border-border text-secondary font-medium"
+            className="bg-transparent text-secondary font-medium"
             variant="outline"
           >
-            <span className="text-sm font-bold text-[#4285f4]">G</span>
+            <img className="size-5" src={Google} alt="Google" />
             Continuar com Google
           </Button>
 
           <Button
-            className="border-border text-secondary font-medium"
+            className="bg-transparent text-secondary font-medium"
             variant="outline"
           >
-            <span className="text-sm font-bold text-[#4267B2]">f</span>
+            <img className="size-5" src={Facebook} alt="Facebook" />
             Continuar com Facebook
           </Button>
         </div>

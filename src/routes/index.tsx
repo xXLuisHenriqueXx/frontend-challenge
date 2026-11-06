@@ -6,6 +6,7 @@ import { Products } from "./-components/Products";
 import { BottomBar } from "./-components/BottomBar";
 import { Promos } from "./-components/Promos";
 import { Blog } from "./-components/Blog";
+import { Footer } from "@/components/Footer";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -18,6 +19,7 @@ function Home() {
       <Products />
       <Promos />
       <Blog />
+      <Footer />
       <BottomBar />
     </main>
   );

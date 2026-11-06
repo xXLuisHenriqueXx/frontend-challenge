@@ -16,7 +16,7 @@ function RouteComponent() {
         <header className="flex flex-row items-center">
           <Link to="/">
             <Button
-              className="size-8.75 border-border bg-surface-raised hover:bg-surface-dark rounded-full [&_svg]:size-5"
+              className="size-8.75 rounded-full"
               variant="outline"
               size="icon"
             >
@@ -47,7 +47,7 @@ function RouteComponent() {
               </div>
             </div>
 
-            <Button className="[&_svg]:size-5" variant="ghost" size="icon-sm">
+            <Button className="size-10" variant="ghost" size="icon">
               <EllipsisVertical />
             </Button>
           </Card>
@@ -64,7 +64,7 @@ function RouteComponent() {
               </div>
             </div>
 
-            <Button className="[&_svg]:size-5" variant="ghost" size="icon-sm">
+            <Button className="size-10" variant="ghost" size="icon">
               <EllipsisVertical />
             </Button>
           </Card>

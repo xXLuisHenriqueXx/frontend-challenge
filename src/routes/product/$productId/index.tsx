@@ -15,12 +15,12 @@ function RouteComponent() {
   console.log(productId);
 
   return (
-    <main className="w-full min-h-dvh ">
+    <main className="w-full min-h-dvh pt-6">
       <section className="flex flex-col gap-2 px-6">
         <header className="flex flex-row items-center justify-between w-full">
           <Link to="/">
             <Button
-              className="size-8.75 border-border bg-surface-raised hover:bg-surface-dark rounded-full [&_svg]:size-5"
+              className="size-8.75 rounded-full"
               variant="outline"
               size="icon"
             >
@@ -29,7 +29,7 @@ function RouteComponent() {
           </Link>
 
           <Button
-            className="size-8.75 border-border bg-surface-raised hover:bg-surface-dark rounded-full [&_svg]:size-5"
+            className="size-8.75 rounded-full"
             variant="outline"
             size="icon"
           >
@@ -89,13 +89,13 @@ function RouteComponent() {
 
       <section className="flex flex-col gap-5 w-full h-full pt-5 pb-9 p-6 -mt-10 rounded-t-[40px] bg-surface-card drop-shadow-[0_-4px_20px_rgba(0,0,0,0.4)]">
         <div className="flex flex-row items-center justify-between">
-          <div className="space-x-2">
+          <div className="flex flex-row items-center gap-3">
             <span className="text-[15px] font-medium text-secondary">Qtd.</span>
-            <Button className="rounded-full" size="icon-xs">
+            <Button className="size-6 rounded-full" size="icon">
               -
             </Button>
             <span className="text-lg font-medium tabular-nums">1</span>
-            <Button className="rounded-full" size="icon-xs">
+            <Button className="size-6 rounded-full" size="icon">
               +
             </Button>
           </div>
@@ -105,11 +105,7 @@ function RouteComponent() {
 
         <div className="flex flex-row items-center gap-3">
           <Button className="rounded-full">Comprar NFT</Button>
-          <Button
-            className="border-border bg-surface-raised hover:bg-surface-dark rounded-full [&_svg]:size-5"
-            variant="outline"
-            size="icon"
-          >
+          <Button className="rounded-full" variant="outline" size="icon">
             <Buy filled />
           </Button>
         </div>

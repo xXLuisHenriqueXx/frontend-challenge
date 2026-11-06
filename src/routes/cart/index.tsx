@@ -17,7 +17,7 @@ function RouteComponent() {
       <header className="flex flex-row items-center px-7">
         <Link to="/">
           <Button
-            className="size-8.75 border-border bg-surface-raised hover:bg-surface-dark rounded-full [&_svg]:size-5"
+            className="size-8.75 rounded-full"
             variant="outline"
             size="icon"
           >
