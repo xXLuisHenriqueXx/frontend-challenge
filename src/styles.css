@@ -4,9 +4,6 @@
 @import "@fontsource-variable/roboto";
 
 @theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: "Roboto Variable", sans-serif;
-
   --color-primary: var(--primary);
   --color-primary-light: var(--primary-light);
   --color-primary-dark: var(--primary-dark);
@@ -95,6 +92,6 @@
     @apply bg-ink text-foreground;
   }
   html {
-    @apply font-sans;
+    @apply font-mono;
   }
 }
