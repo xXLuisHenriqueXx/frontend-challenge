@@ -1,4 +1,4 @@
-@import "tailwindcss" source("./");
+@import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/roboto-mono";
@@ -124,7 +124,8 @@
 
 @layer base {
   * {
-    scrollbar-color: var(--secondary) var(--ink);
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
   body {
     @apply bg-ink text-foreground;

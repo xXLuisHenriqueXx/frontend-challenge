@@ -30,5 +30,9 @@ reports/verification/
 reports/lighthouse/*/
 !reports/lighthouse/final/
 !reports/lighthouse/delivery/
-reports/playwright/*/
-!reports/playwright/final/
+# Keep original Lighthouse HTML and summaries; complete reports exceed 25 MB.
+reports/lighthouse/final/*.json
+!reports/lighthouse/final/summary.json
+reports/lighthouse/delivery/*.json
+!reports/lighthouse/delivery/summary.json
+reports/playwright/

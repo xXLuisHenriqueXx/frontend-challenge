@@ -21,8 +21,7 @@
     "test:e2e:update": "node scripts/run-e2e.mjs --update-snapshots=all",
     "test:e2e:report": "playwright show-report",
     "lighthouse": "node scripts/run-lighthouse.mjs",
-    "test:unit": "node --test scripts/unit/*.test.mjs",
-    "test:design": "node scripts/run-e2e.mjs --config=playwright.design.config.ts"
+    "test:unit": "node --test scripts/unit/*.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

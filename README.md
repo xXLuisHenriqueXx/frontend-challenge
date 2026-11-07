@@ -2,7 +2,14 @@
 
 SPA React/TypeScript com TanStack Router/Query, Axios, Tailwind/shadcn, MSW e Socket.IO. Catálogo, compra e conta funcionam na simulação local, sem pagamento ou transferência real de NFTs.
 
-[Repositório](https://github.com/xXLuisHenriqueXx/frontend-challenge) · **URL publicada: PENDENTE — preencher após publicação e verificação pelo responsável.** [Arquitetura e contratos](ARCHITECTURE.md) · [Entrega e deploy](docs/ENTREGA.md).
+[Repositório](https://github.com/xXLuisHenriqueXx/frontend-challenge) · [Arquitetura e contratos](ARCHITECTURE.md).
+
+## Avaliação rápida
+
+- Aplicação: https://frontend-challenge-sigma-sable.vercel.app
+- Contas de teste: `ana@kurio.test` e `bruno@kurio.test`, ambas com senha `Kurio123!`.
+- Cupom: `KURIO10`.
+- Restaurar a demonstração: [/?reset=1&scenario=success](https://frontend-challenge-sigma-sable.vercel.app/?reset=1&scenario=success).
 
 ## Instalação e execução
 
@@ -32,24 +39,23 @@ Credenciais fictícias: `ana@kurio.test` e `bruno@kurio.test`, ambas com senha *
 
 ## Scripts
 
-| npm run          | Finalidade                                            |
-| ---------------- | ----------------------------------------------------- |
-| dev              | Desenvolvimento em 3000 com mocks ativos por padrão   |
-| build            | Produção estática em dist com mocks                   |
-| preview          | Servir dist localmente                                |
-| generate-routes  | Regenerar árvore TanStack Router                      |
-| typecheck        | TypeScript sem emissão                                |
-| lint             | ESLint, falha também em warnings                      |
-| check / format   | Conferir/aplicar formatação e correções ESLint        |
-| test:e2e         | Build, preview 3100 e suíte completa desktop/mobile   |
-| test:e2e:update  | Atualizar baselines; revisar cada diff                |
-| test:e2e:report  | Abrir HTML da última execução                         |
-| test:a11y        | Axe, teclado, foco, reflow e reduced motion           |
-| test:design      | Nove telas em três larguras e geometria dos skeletons |
-| test:unit        | Regras puras com node:test                            |
-| test:integration | Contratos REST via Axios/MSW                          |
-| test:realtime    | Transporte Socket.IO pelo MSW                         |
-| lighthouse       | Build, preview 3200 e 12 medições/medianas            |
+| npm run          | Finalidade                                          |
+| ---------------- | --------------------------------------------------- |
+| dev              | Desenvolvimento em 3000 com mocks ativos por padrão |
+| build            | Produção estática em dist com mocks                 |
+| preview          | Servir dist localmente                              |
+| generate-routes  | Regenerar árvore TanStack Router                    |
+| typecheck        | TypeScript sem emissão                              |
+| lint             | ESLint, falha também em warnings                    |
+| check / format   | Conferir/aplicar formatação e correções ESLint      |
+| test:e2e         | Build, preview 3100 e suíte completa desktop/mobile |
+| test:e2e:update  | Atualizar baselines; revisar cada diff              |
+| test:e2e:report  | Abrir HTML da última execução                       |
+| test:a11y        | Axe, teclado, foco, reflow e reduced motion         |
+| test:unit        | Regras puras com node:test                          |
+| test:integration | Contratos REST via Axios/MSW                        |
+| test:realtime    | Transporte Socket.IO pelo MSW                       |
+| lighthouse       | Build, preview 3200 e 12 medições/medianas          |
 
 ## Build e rotas
 
@@ -62,7 +68,7 @@ npm run preview -- --host 127.0.0.1 --port 3000
 
 Rotas: `/`, `/product/1`, `/cart`, `/login`, `/register`, `/profile`, `/wallets`, `/payment` e `/payment/confirm?orderId=ID`. Recibo exige pedido existente e sessão proprietária. Pagamento, perfil e carteiras também são protegidos. Acesso direto e refresh funcionam no preview; hospedagem pública precisa oferecer fallback para `index.html` e servir assets/worker sem reescrita.
 
-`vercel.json` configura build Vite, saída `dist` e fallback SPA, seguindo a [documentação Vite/Vercel](https://vercel.com/docs/frameworks/frontend/vite) e a [configuração de rewrites](https://vercel.com/docs/project-configuration/vercel-json). A configuração não comprova publicação. Ainda é necessário publicar esta revisão e validar URL, rotas diretas/refresh, worker, REST e Socket.IO no host público.
+`vercel.json` configura o fallback SPA e preserva o acesso aos assets e ao worker na aplicação publicada.
 
 ## Cenários e recuperação de falhas
 
@@ -109,7 +115,7 @@ await fetch("/api/mock/nft", {
 });
 ```
 
-Aviso e novo total chegam pelo Socket.IO; a compra exige nova revisão. Use `stock: 0` para esgotar. `POST /api/mock/expire` com `{}` expira a sessão. `POST /api/mock/reset` com `{scenario:'success'}` restaura dados; recarregue depois para descartar caches da interface. Controles `/api/mock/timing` estão em [MOCKS.md](ARCHITECTURE.md#transporte-e-protocolo).
+Aviso e novo total chegam pelo Socket.IO; a compra exige nova revisão. Use `stock: 0` para esgotar. `POST /api/mock/expire` com `{}` expira a sessão. `POST /api/mock/reset` com `{scenario:'success'}` restaura dados; recarregue depois para descartar caches da interface. Controles `/api/mock/timing` estão em [ARCHITECTURE.md](ARCHITECTURE.md#controle-dos-mocks).
 
 Fluxo: explorar NFT → Comprar → Carrinho → Conectar e finalizar → login se necessário → preencher dados obrigatórios → Conectar carteira → Revisar compra → Confirmar compra → recibo pendente/confirmado ou recusado. Confirmação vem da simulação, nunca de parâmetro `status` da URL.
 
@@ -121,16 +127,15 @@ npm run test:integration
 npm run test:realtime
 npm run test:e2e
 npm run test:e2e:report
-npm run test:design
 ```
 
 `test:e2e` faz build, inicia preview próprio em **3100**, executa Chromium em 390/1440 e acessibilidade também em 768, gera HTML e encerra o preview. A porta deve estar livre. São 52 testes: 32 funcionais/de publicação local, dois percursos com oito capturas visuais e 18 de acessibilidade. Cada teste restaura MSW; REST e Socket.IO usam a camada real de mocks. As verificações de publicação local incluem worker JavaScript, 404 e acesso direto/refresh de detalhe, carrinho, perfil, carteiras, pagamento e recibo.
 
 `npm run test:a11y` executa somente acessibilidade. `npm run test:e2e:update` atualiza referências; revise as diferenças antes de versionar. Referências atuais: Chromium 158/Windows; outros sistemas podem precisar de referências próprias por renderização de fontes. Relógio fixo e animações desativadas nas capturas. Traces e screenshots das falhas ficam em `test-results`, HTML em `playwright-report`; artefatos de execução são ignorados pelo Git. Oito PNGs de referência são versionados em `tests/e2e/visual.spec.ts-snapshots`.
 
-As configurações respeitam `PLAYWRIGHT_BROWSERS_PATH`; também reconhecem `.npm-cache/playwright`, se existir. Detalhes em [política de testes](ARCHITECTURE.md#execução-e-limites-de-validação). Execute os comandos sequencialmente em máquinas com pouca memória.
+As configurações respeitam `PLAYWRIGHT_BROWSERS_PATH`; também reconhecem `.npm-cache/playwright`, se existir. Detalhes em [política de testes](ARCHITECTURE.md#testes). Execute os comandos sequencialmente em máquinas com pouca memória.
 
-test:unit executa 31 casos de regras puras com node:test. test:design executa 27 capturas das nove telas em 390/768/1440 e três verificações de geometria dos skeletons. Capturas/métricas ficam em reports/fidelity/after; FIDELITY_PHASE=before seleciona a pasta inicial. O mapa de referências e as exceções estão em [arquitetura](ARCHITECTURE.md#decisões-de-ux-e-desvios-do-figma).
+`test:unit` executa 31 casos de regras puras com node:test. As referências visuais e as diferenças conhecidas estão em [arquitetura](ARCHITECTURE.md#decisões-de-ux-e-desvios-do-figma).
 
 ## Lighthouse
 
@@ -140,18 +145,29 @@ npm run lighthouse
 
 O comando faz build otimizado, inicia preview próprio em **3200** e executa **12 auditorias**: início e detalhe, mobile/desktop, três execuções por combinação. Usa perfil Chromium novo por medição, cache frio, dados restaurados e cenário `success` com latência 120 ms. Mocks, Socket.IO, imagens, fontes e funcionalidades permanecem ativos; não há modo de aplicação exclusivo da auditoria. `lighthouse.config.mjs` usa os perfis simulados padrão do Lighthouse: mobile Slow 4G/CPU 4x e desktop Dense 4G.
 
-HTML/JSON individuais e `summary.json` ficam em `reports/lighthouse/delivery/`. O resumo inclui medianas de Performance, Accessibility, Best Practices, SEO, LCP/CLS/TBT, ambiente, versões, condições e hash dos arquivos auditados. Metas: 90/95/95/90. O comando retorna sucesso quando a coleta termina; `meetsTargets` e a auditoria documentam se todas as metas foram atingidas.
+As auditorias geram HTML/JSON individuais e `summary.json` em `reports/lighthouse/delivery/`. Os relatórios versionados incluem os HTML e o resumo, conforme a política de tamanho abaixo. O resumo inclui medianas de Performance, Accessibility, Best Practices, SEO, LCP/CLS/TBT, ambiente, versões, condições e hash dos arquivos auditados. Metas: 90/95/95/90. O comando retorna sucesso quando a coleta termina; `meetsTargets` e a auditoria documentam se todas as metas foram atingidas.
 
 Para investigação, `npm run lighthouse -- --runs=1 --label=investigacao` executa uma medição por combinação em outro diretório. Isso não substitui as três execuções finais. `CHROME_PATH` permite indicar executável compatível; por padrão usa Chromium do Playwright. Não execute E2E/Lighthouse simultaneamente.
 
-Os relatórios atuais ficam em delivery; os finais protegidos da etapa 6 permanecem em reports/lighthouse/final como histórico.
+Os relatórios atuais ficam em `reports/lighthouse/delivery`; as medições anteriores permanecem em `reports/lighthouse/final` como histórico.
 
-## Publicação
+## Deploy
 
-O responsável publica com sua conta conforme [ENTREGA](docs/ENTREGA.md#publicação-manual-na-vercel). A configuração local não comprova publicação: verificar URL, commit, worker, Socket.IO e acesso direto/refresh antes de preencher a URL acima. Guia oficial: [Deploy por CLI](https://vercel.com/docs/projects/deploy-from-cli).
+A aplicação está publicada na **Vercel**, na branch `main`: https://frontend-challenge-sigma-sable.vercel.app
+
+| Configuração | Valor                         |
+| ------------ | ----------------------------- |
+| Framework    | Vite                          |
+| Node         | 24.x                          |
+| Instalação   | `npm ci`                      |
+| Build        | `npm run build`               |
+| Saída        | `dist`                        |
+| Rotas        | Fallback SPA em `vercel.json` |
+
+As variáveis de ambiente são opcionais: os mocks vêm ativos por padrão. O worker MSW é servido na raiz e o Socket.IO é simulado no navegador, sem backend externo. Detalhes em [Deploy](ARCHITECTURE.md#deploy).
 
 ## Relatórios e limites
 
-Relatório Playwright entregue em reports/playwright/final; o HTML temporário e traces de falha ficam em playwright-report e test-results. Capturas exploratórias de test:design em reports/fidelity são geradas/ignoradas. O arquivo yarn.lock foi preservado pela regra de não apagar lockfiles; o fluxo oficial e validado é npm ci com package-lock.json.
+Os relatórios completos existentes excedem 25 MB (mais de 40 MB antes de incluir as medições atuais). Para manter o repositório compacto, são versionados somente os `summary.json` e os HTML originais do Lighthouse em `reports/lighthouse/delivery` e `reports/lighthouse/final`: 26 arquivos, cerca de 16,8 MiB. Os JSON individuais e o relatório Playwright não são versionados. O HTML Lighthouse incorpora os dados de cada auditoria. Para gerar um novo relatório Playwright, execute `npm run test:e2e` e abra com `npm run test:e2e:report`; HTML, screenshots e traces de falha ficam em `playwright-report` e `test-results`. A instalação usa `npm ci` com `package-lock.json`.
 
-Figma/fonte exata indisponíveis, recortes de 212×212, preservação de controles funcionais e ajustes de acessibilidade estão em [ARCHITECTURE](ARCHITECTURE.md#decisões-de-ux-e-desvios-do-figma). Automação não substitui revisão humana. Métricas atuais e pendências constam em [ENTREGA](docs/ENTREGA.md).
+Figma/fonte exata indisponíveis, recortes de 212×212, preservação de controles funcionais e ajustes de acessibilidade estão em [ARCHITECTURE](ARCHITECTURE.md#decisões-de-ux-e-desvios-do-figma). Automação não substitui revisão humana. As medianas Lighthouse e as causas do desempenho mobile abaixo da meta estão em [Performance](ARCHITECTURE.md#performance).
