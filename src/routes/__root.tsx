@@ -1,9 +1,9 @@
-import { RouteAccessibility } from "@/components/RouteAccessibility";
-import { Realtime } from "@/api/realtime";
+import { Realtime } from "@/features/realtime/components/realtime-status";
+import { RouteAccessibility } from "@/shared/components/route-accessibility";
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
 import "../styles.css";
 
@@ -20,7 +20,8 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <>
-      <RouteAccessibility /><Realtime />
+      <RouteAccessibility />
+      <Realtime />
       <Outlet />
       <TanStackDevtools
         config={{

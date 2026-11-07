@@ -17,7 +17,7 @@ const argument = (name, fallback) =>
   process.argv.find((x) => x.startsWith(`--${name}=`))?.split("=")[1] ??
   fallback;
 const runs = Number(argument("runs", "3"));
-const label = argument("label", "final");
+const label = argument("label", "delivery");
 if (!Number.isInteger(runs) || runs < 1 || !/^[a-z0-9-]+$/.test(label))
   throw new Error("Invalid runs/label");
 const directory = path.resolve("reports/lighthouse", label);

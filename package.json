@@ -10,7 +10,7 @@
     "generate-routes": "tsr generate",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint",
+    "lint": "eslint --max-warnings=0",
     "format": "prettier --write . && eslint --fix",
     "check": "prettier --check .",
     "typecheck": "tsc --noEmit",
@@ -20,12 +20,13 @@
     "test:e2e": "node scripts/run-e2e.mjs",
     "test:e2e:update": "node scripts/run-e2e.mjs --update-snapshots=all",
     "test:e2e:report": "playwright show-report",
-    "lighthouse": "node scripts/run-lighthouse.mjs"
+    "lighthouse": "node scripts/run-lighthouse.mjs",
+    "test:unit": "node --test scripts/unit/*.test.mjs",
+    "test:design": "node scripts/run-e2e.mjs --config=playwright.design.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
-    "@fontsource-variable/geist": "^5.3.0",
-    "@fontsource-variable/roboto": "^5.3.0",
+    "@fontsource-variable/roboto-mono": "^5.3.0",
     "@mswjs/socket.io-binding": "^0.2.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "0.10.14",
@@ -50,7 +51,6 @@
     "@playwright/test": "^1.65.0",
     "@tanstack/devtools-vite": "0.8.6",
     "@tanstack/eslint-config": "0.4.0",
-    "@tanstack/eslint-plugin-query": "^5.106.1",
     "@tanstack/router-cli": "^1.132.0",
     "@tanstack/router-plugin": "1.168.48",
     "@types/node": "^22.10.2",
@@ -74,5 +74,8 @@
     "workerDirectory": [
       "public"
     ]
+  },
+  "engines": {
+    "node": "24.x"
   }
 }

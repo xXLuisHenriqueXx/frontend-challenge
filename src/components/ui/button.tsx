@@ -1,10 +1,10 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
-import { cva  } from "class-variance-authority";
-import type {VariantProps} from "class-variance-authority";
+import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import { cn } from "cn";
 
 const buttonVariants = cva(
-  "group/button flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding font-bold whitespace-nowrap transition-all duration-300 outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-border active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-error aria-invalid:ring-3 aria-invalid:ring-error/20 dark:aria-invalid:border-error/50 dark:aria-invalid:ring-error/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-5 cursor-pointer",
+  "group/button flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding font-bold whitespace-nowrap transition-[background-color,color,border-color,box-shadow,transform] duration-300 outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-border active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-error aria-invalid:ring-3 aria-invalid:ring-error/20 dark:aria-invalid:border-error/50 dark:aria-invalid:ring-error/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-5 cursor-pointer",
   {
     variants: {
       variant: {
@@ -19,11 +19,11 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-15 gap-1.5 px-6",
+        default: "h-15 gap-1.5 px-6 lg:h-11",
         link: "w-fit h-fit gap-1.5 p-0",
-        icon: "size-15",
- sm: "h-15 gap-1.5 px-6",
- "icon-sm": "size-15",
+        icon: "size-11",
+        sm: "h-15 gap-1.5 px-6",
+        "icon-sm": "size-11",
       },
     },
     defaultVariants: {

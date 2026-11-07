@@ -10,6 +10,7 @@ if (
 
 export default defineConfig({
   testDir: "./tests",
+  testIgnore: "**/design/**",
   timeout: 60000,
   expect: {
     timeout: 15000,

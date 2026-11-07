@@ -1,5 +1,5 @@
-import { ws } from "msw";
 import { toSocketIo } from "@mswjs/socket.io-binding";
+import { ws } from "msw";
 import { db } from "./database";
 import { subscribe } from "./events";
 import { completeOrders } from "./handlers";

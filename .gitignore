@@ -17,3 +17,18 @@ todos.json
 playwright-report/
 test-results/
 .verification/
+
+build/
+.vercel/
+.env.*
+!.env.example
+*.tsbuildinfo
+
+# Exploratory artifacts are regenerated; required final reports stay versioned.
+reports/fidelity/
+reports/verification/
+reports/lighthouse/*/
+!reports/lighthouse/final/
+!reports/lighthouse/delivery/
+reports/playwright/*/
+!reports/playwright/final/

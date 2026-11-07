@@ -7,7 +7,7 @@ import type {
   User,
   Wallet,
 } from "../api/contracts";
-import Monkey from "../assets/monkey.webp";
+import { artworkForToken } from "../assets/artwork";
 
 interface Account extends User {
   passwordHash: string;
@@ -113,7 +113,7 @@ export async function reset(scenario = "success") {
       activeEdition: "1/50",
       tokenId: `#${String(i + 1).padStart(4, "0")}`,
       attributes: "Raro",
-      images: [Monkey, Monkey, Monkey, Monkey],
+      images: Array.from({ length: 4 }, () => artworkForToken(String(i + 1))),
     })),
     carts: {},
     coupons: {},

@@ -1,9 +1,10 @@
-import ReactDOM from "react-dom/client";
-import { RouterProvider } from "@tanstack/react-router";
+import { queryKeys } from "@/shared/api/query-keys";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { RouterProvider } from "@tanstack/react-router";
 import { isAxiosError } from "axios";
+import ReactDOM from "react-dom/client";
+import { http, queryClient } from "./api/client";
 import { getRouter } from "./router";
-import { queryClient, http } from "./api/client";
 
 export function mountApp() {
   const router = getRouter();
@@ -12,9 +13,9 @@ export function mountApp() {
     async (error: unknown) => {
       if (isAxiosError(error)) {
         const sentToken = error.config?.headers.get("X-Session-Token");
-        const current = queryClient.getQueryData<{ token?: string } | null>([
-          "session",
-        ]);
+        const current = queryClient.getQueryData<{ token?: string } | null>(
+          queryKeys.session,
+        );
         if (sentToken && sentToken !== current?.token)
           return Promise.reject(error);
       }
@@ -23,11 +24,11 @@ export function mountApp() {
         error.response?.status === 401 &&
         (!error.config?.url?.startsWith("/auth/") ||
           (error.config.url === "/auth/session" &&
-            !!queryClient.getQueryData(["session"])))
+            !!queryClient.getQueryData(queryKeys.session)))
       ) {
-        await queryClient.cancelQueries({ queryKey: ["private"] });
-        queryClient.removeQueries({ queryKey: ["private"] });
-        queryClient.setQueryData(["session"], null);
+        await queryClient.cancelQueries({ queryKey: queryKeys.private });
+        queryClient.removeQueries({ queryKey: queryKeys.private });
+        queryClient.setQueryData(queryKeys.session, null);
         void router.navigate({
           to: "/login",
           search: { returnTo: router.state.location.href },

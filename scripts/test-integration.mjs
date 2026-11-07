@@ -52,7 +52,9 @@ const check = (condition, label) => {
 try {
   const source = await axios.get(`${appUrl}/src/api/hooks.tsx`);
   check(
-    source.status === 200 && source.data.includes("useMutation"),
+    source.status === 200 &&
+      source.data.includes("useCart") &&
+      !source.data.includes('"code":"NOT_FOUND"'),
     "Vite source under src/api bypasses mocks",
   );
   const route = await axios.get(

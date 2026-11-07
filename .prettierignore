@@ -5,3 +5,7 @@ reports/
 playwright-report/
 test-results/
 public/mockServiceWorker.js
+src/routeTree.gen.ts
+# Inputs and instructions are preserved verbatim.
+docs/DESAFIO.md
+AGENTS.md
